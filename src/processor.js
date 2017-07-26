@@ -18,6 +18,7 @@ Promise.resolve().then(() => {
 })
 
 function SendError(error) {
+  console.log('SendError::error', error)
   process.send(JSON.stringify({
     event: 'error',
     message: error.msg,

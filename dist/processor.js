@@ -34,6 +34,7 @@ _bluebird2.default.resolve().then(function () {
 });
 
 function SendError(error) {
+  console.log('SendError::error', error);
   process.send(JSON.stringify({
     event: 'error',
     message: error.msg,
