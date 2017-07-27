@@ -298,7 +298,7 @@ function watchContractContributionEvents() {
           event: 'broadcast_contribution_data',
           data: {
             leaderboard: data[0],
-            totalSuppply: data[1],
+            totalSupply: data[1],
             contributionFrequency: data[2],
             summaryStatistics: data[3],
             tokenInflation: data[4],
