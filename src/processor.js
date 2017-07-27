@@ -176,9 +176,9 @@ function updateContributionFrequency({ contribution }) {
           rewardType,
           count,
           percentOfTotal
-        ) VALUES (
-          (SELECT rewardType, count(rewardType), count(rewardType)/(SELECT count(*)*1.0 from contribution)*100.0 from contribution GROUP BY rewardType)
-        );
+        ) SELECT rewardType, count(rewardType), count(rewardType)/(SELECT count(*)*1.0 FROM contribution)*100.0
+        FROM contribution
+        GROUP BY rewardType;
       `))
     }).then(() => {
       return Promise.resolve(sqlite.all(`
