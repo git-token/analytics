@@ -177,9 +177,7 @@ function updateContributionFrequency({ contribution }) {
           count,
           percentOfTotal
         ) VALUES (
-          "${rewardType}",
-          (SELECT count(*) FROM contribution WHERE rewardType = "${rewardType}"),
-          (SELECT 100.0 * count(*) / (SELECT count(*) FROM contribution) AS PERCENTAGE FROM contribution WHERE rewardType = "${rewardType}")
+          (SELECT rewardType, count(rewardType), count(rewardType)/(SELECT count(*)*1.0 from contribution)*100.0 from contribution GROUP BY rewardType)
         );
       `))
     }).then(() => {

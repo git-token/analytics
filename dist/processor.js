@@ -159,7 +159,7 @@ function updateContributionFrequency(_ref2) {
     _bluebird2.default.resolve(_sqlite2.default.all('\n      CREATE TABLE IF NOT EXISTS contribution_frequency (\n        rewardType     TEXT,\n        count          INTEGER,\n        percentOfTotal REAL,\n        CONSTRAINT contribution_frequency_pk PRIMARY KEY (rewardType)\n      );\n    ')).then(function () {
       var rewardType = contribution.rewardType;
 
-      return _bluebird2.default.resolve(_sqlite2.default.all('\n        INSERT OR REPLACE INTO contribution_frequency (\n          rewardType,\n          count,\n          percentOfTotal\n        ) VALUES (\n          "' + rewardType + '",\n          (SELECT count(*) FROM contribution WHERE rewardType = "' + rewardType + '"),\n          (SELECT 100.0 * count(*) / (SELECT count(*) FROM contribution) AS PERCENTAGE FROM contribution WHERE rewardType = "' + rewardType + '")\n        );\n      '));
+      return _bluebird2.default.resolve(_sqlite2.default.all('\n        INSERT OR REPLACE INTO contribution_frequency (\n          rewardType,\n          count,\n          percentOfTotal\n        ) VALUES (\n          (SELECT rewardType, count(rewardType), count(rewardType)/(SELECT count(*)*1.0 from contribution)*100.0 from contribution GROUP BY rewardType)\n        );\n      '));
     }).then(function () {
       return _bluebird2.default.resolve(_sqlite2.default.all('\n        SELECT * FROM contribution_frequency;\n      '));
     }).then(function (contributionFrequency) {
