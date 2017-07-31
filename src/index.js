@@ -99,8 +99,163 @@ export default class GitTokenAnalytics {
 
     events.watch((error, result) => {
       if (error) { this.handleError({ error, method: 'watchContributionEvents' }) }
-      this.saveContributionEvent({ event: result }).then(() => {
+      this.saveContributionEvent({ event: result }).then((contribution) => {
+        process.send(JSON.stringify({
+          event: 'new_contribution',
+          data: contribution,
+          message: `New contribution received and saved.`
+        }))
+        return join(
+          this.updateLeaderboard({ contribution }),
+          this.updateTotalSupply({ contribution }),
+          this.updateContributionFrequency({ contribution })
+        )
+      }).then((data) => {
+        console.log('data', data)
+      })
+    })
+  }
 
+  updateContributionFrequency({ contribution }) {
+    return new Promise((resolve, reject) => {
+      this.query({ queryString: `
+        CREATE TABLE IF NOT EXISTS contribution_frequency (
+          rewardType     CHARACTER(66) PRIMARY KEY,
+          count          BIGINT NOT NULL DEFAULT 0,
+          percentOfTotal REAL
+        );
+      `}).then(() => {
+        return this.query({
+          queryString: `
+            INSERT INTO contribution_frequency (
+              rewardType,
+              count,
+              percentOfTotal
+            ) SELECT rewardType, count(rewardType), count(rewardType)/(SELECT count(*)*1.0 FROM contributions)*100.0 FROM contributions GROUP BY rewardType
+            ON DUPLICATE KEY UPDATE
+            rewardType=VALUES(rewardType),
+            count=VALUES(count),
+            percentOfTotal=VALUES(percentOfTotal);
+          `
+        })
+      }).then(() => {
+        return this.query({
+          queryString: `
+            SELECT * FROM contribution_frequency;
+          `
+        })
+      }).then((contributionFrequency) => {
+        resolve(contributionFrequency)
+      }).catch((error) => {
+        reject(error)
+      })
+    })
+  }
+
+  updateTotalSupply({ contribution }) {
+    return new Promise((resolve, reject) => {
+      const { date } = contribution
+      this.query({
+        queryString: `
+          CREATE TABLE IF NOT EXISTS total_supply (
+            totalSupply    BIGINT NOT NULL DEFAULT 0,
+            date           BIGINT NOT NULL DEFAULT 0 PRIMARY KEY
+          );
+        `
+      }).then(() => {
+        return this.query({
+          queryString: `
+            INSERT INTO total_supply (
+              totalSupply,
+              date
+            ) VALUES (
+              (SELECT (sum(value)+sum(reservedValue)) FROM contributions WHERE date <= ${date}),
+              ${date}
+            ) ;
+          `
+        })
+      }).then(() => {
+        return this.query({
+          queryString: `
+            SELECT * FROM total_supply ORDER BY date DESC LIMIT 1;
+          `
+        })
+      }).then((totalSupply) => {
+        resolve(totalSupply[0])
+      }).catch((error) => {
+        this.handleError({ error })
+      })
+    })
+  }
+
+  updateLeaderboard({ contribution }) {
+    return new Promise((resolve, reject) => {
+      const { username, contributor } = contribution
+      this.query({ queryString: `
+        CREATE TABLE IF NOT EXISTS leaderboard (
+          username             CHARACTER(42) PRIMARY KEY,
+          contributorAddress   CHARACTER(42),
+          value                BIGINT NOT NULL DEFAULT 0,
+          latestContribution   BIGINT NOT NULL DEFAULT 0,
+          numContributions     BIGINT NOT NULL DEFAULT 0,
+          valuePerContribution REAL
+        );
+      `}).then(() => {
+        return this.query({ queryString: `
+            INSERT INTO leaderboard (
+              username,
+              contributorAddress,
+              value,
+              latestContribution,
+              numContributions,
+              valuePerContribution
+            ) VALUES (
+              "${username}",
+              "${contribution['contributor']}",
+              (SELECT sum(value) FROM contributions WHERE username = "${username}"),
+              (SELECT max(date) FROM contributions WHERE username = "${username}"),
+              (SELECT count(*) FROM contributions WHERE username = "${username}"),
+              (SELECT sum(value)/count(*) FROM contributions WHERE username = "${username}")
+            ) ON DUPLICATE KEY UPDATE
+              value=VALUES(value),
+              latestContribution=VALUES(latestContribution),
+              numContributions=VALUES(numContributions),
+              valuePerContribution=VALUES(valuePerContribution)
+            ;
+          ` })
+       }).then(() => {
+        // Replace "0x0" with contract address;
+        return this.query({ queryString: `
+            INSERT INTO leaderboard (
+              username,
+              contributorAddress,
+              value,
+              latestContribution,
+              numContributions,
+              valuePerContribution
+            ) VALUES (
+              "Total",
+              "${this.contractDetails['address']}",
+              (SELECT sum(value)+sum(reservedValue) FROM contributions),
+              (SELECT max(date) FROM contributions),
+              (SELECT count(*) FROM contributions),
+              (SELECT (sum(value)+sum(reservedValue))/count(*) FROM contributions)
+            ) ON DUPLICATE KEY UPDATE
+              value=VALUES(value),
+              latestContribution=VALUES(latestContribution),
+              numContributions=VALUES(numContributions),
+              valuePerContribution=VALUES(valuePerContribution)
+            ;
+          `
+        })
+      }).then(() => {
+        return this.query({ queryString: `
+          SELECT * FROM leaderboard;
+        ` })
+      }).then((leaderboard) => {
+        resolve(leaderboard)
+      }).catch((error) => {
+        this.handleError({ error })
       })
     })
   }
@@ -149,7 +304,7 @@ export default class GitTokenAnalytics {
           `
         })
       }).then((result) => {
-        resolve(result)
+        resolve(result[0])
       }).catch((error) => {
         this.handleError({ error, method: 'saveContributionEvent' })
       })
