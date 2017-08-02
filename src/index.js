@@ -149,15 +149,21 @@ export default class GitTokenAnalytics {
 
   getContractDetails() {
     return new Promise((resolve, reject) => {
-      console.log('this.contract.name', this.contract.name)
-      this.contractDetails = {
-        name: 'GitToken',
-        symbol: 'GTK',
-        decimals: 8,
-        organization: 'git-token',
-        address: this.contract.address
+      try {
+        console.log('this.contract.name', this.contract.name)
+        this.contractDetails = {
+          name: 'GitToken',
+          symbol: 'GTK',
+          decimals: 8,
+          organization: 'git-token',
+          address: this.contract.address
+        }
+        resolve(this.contractDetails)
+      } catch (error) {
+        console.log('contractDetails::error', error)
+        this.handleError({ error, method: 'getContractDetails' })
       }
-      resolve(this.contractDetails)
+
       // join(
       //   this.contract.name.callAsync(),
       //   this.contract.symbol.callAsync(),
@@ -178,8 +184,8 @@ export default class GitTokenAnalytics {
       //     throw error
       //   }
       // }).catch((error) => {
-      //   console.log('contractDetails::error', error)
-      //   this.handleError({ error, method: 'getContractDetails' })
+        // console.log('contractDetails::error', error)
+        // this.handleError({ error, method: 'getContractDetails' })
       // })
     })
   }

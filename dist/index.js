@@ -236,15 +236,21 @@ var GitTokenAnalytics = function () {
       var _this8 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
-        console.log('this.contract.name', _this8.contract.name);
-        _this8.contractDetails = {
-          name: 'GitToken',
-          symbol: 'GTK',
-          decimals: 8,
-          organization: 'git-token',
-          address: _this8.contract.address
-        };
-        resolve(_this8.contractDetails
+        try {
+          console.log('this.contract.name', _this8.contract.name);
+          _this8.contractDetails = {
+            name: 'GitToken',
+            symbol: 'GTK',
+            decimals: 8,
+            organization: 'git-token',
+            address: _this8.contract.address
+          };
+          resolve(_this8.contractDetails);
+        } catch (error) {
+          console.log('contractDetails::error', error);
+          _this8.handleError({ error: error, method: 'getContractDetails' });
+        }
+
         // join(
         //   this.contract.name.callAsync(),
         //   this.contract.symbol.callAsync(),
@@ -265,10 +271,9 @@ var GitTokenAnalytics = function () {
         //     throw error
         //   }
         // }).catch((error) => {
-        //   console.log('contractDetails::error', error)
-        //   this.handleError({ error, method: 'getContractDetails' })
+        // console.log('contractDetails::error', error)
+        // this.handleError({ error, method: 'getContractDetails' })
         // })
-        );
       });
     }
   }, {
