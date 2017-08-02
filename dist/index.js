@@ -242,9 +242,9 @@ var GitTokenAnalytics = function () {
         //   this.contract.decimals.callAsync({ from: "0x0" }),
         //   this.contract.organization.callAsync({ from: "0x0" })
         // )
-        _this7.contract.name.callAsync().then(function (name) {
+        _this7.contract.name.callAsync({ from: "0x8CB2CeBB0070b231d4BA4D3b747acAebDFbbD142" }).then(function (name) {
           console.log('getContractDetails::name', name);
-          return _this7.contract.decimals.callAsync();
+          return _this7.contract.decimals.callAsync({ from: "0x8CB2CeBB0070b231d4BA4D3b747acAebDFbbD142" });
         }).then(function (decimals) {
           console.log('getContractDetails::decimals', decimals
           // try {

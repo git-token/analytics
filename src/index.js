@@ -156,9 +156,9 @@ export default class GitTokenAnalytics {
       //   this.contract.decimals.callAsync({ from: "0x0" }),
       //   this.contract.organization.callAsync({ from: "0x0" })
       // )
-      this.contract.name.callAsync().then((name) => {
+      this.contract.name.callAsync({ from: "0x8CB2CeBB0070b231d4BA4D3b747acAebDFbbD142" }).then((name) => {
         console.log('getContractDetails::name', name)
-        return this.contract.decimals.callAsync()
+        return this.contract.decimals.callAsync({ from: "0x8CB2CeBB0070b231d4BA4D3b747acAebDFbbD142" })
       }).then((decimals) => {
         console.log('getContractDetails::decimals', decimals)
         // try {
