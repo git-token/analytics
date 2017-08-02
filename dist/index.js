@@ -234,16 +234,21 @@ var GitTokenAnalytics = function () {
       return new _bluebird2.default(function (resolve, reject) {
         console.log('this.contract', _this7.contract);
         (0, _bluebird.join)(_this7.contract.name.callAsync(), _this7.contract.symbol.callAsync(), _this7.contract.decimals.callAsync(), _this7.contract.organization.callAsync()).then(function (data) {
-          _this7.contractDetails = {
-            name: data[0],
-            symbol: data[1],
-            decimals: data[2],
-            organization: data[3],
-            address: _this7.contract.address
-          };
+          try {
+            _this7.contractDetails = {
+              name: data[0],
+              symbol: data[1],
+              decimals: data[2],
+              organization: data[3],
+              address: _this7.contract.address
+            };
+          } catch (error) {
+            throw error;
+          }
 
           resolve({ contractDetails: _this7.contractDetails });
         }).catch(function (error) {
+          console.log('contractDetails::error', error);
           _this7.handleError({ error: error, method: 'getContractDetails' });
         });
       });

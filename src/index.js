@@ -153,16 +153,21 @@ export default class GitTokenAnalytics {
         this.contract.decimals.callAsync(),
         this.contract.organization.callAsync()
       ).then((data) => {
-        this.contractDetails = {
-          name: data[0],
-          symbol: data[1],
-          decimals: data[2],
-          organization: data[3],
-          address: this.contract.address
+        try {
+          this.contractDetails = {
+            name: data[0],
+            symbol: data[1],
+            decimals: data[2],
+            organization: data[3],
+            address: this.contract.address
+          }
+        } catch (error) {
+          throw error
         }
 
         resolve({ contractDetails: this.contractDetails })
       }).catch((error) => {
+        console.log('contractDetails::error', error)
         this.handleError({ error, method: 'getContractDetails' })
       })
     })
