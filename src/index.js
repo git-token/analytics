@@ -150,17 +150,14 @@ export default class GitTokenAnalytics {
 
   getContractDetails() {
     return new Promise((resolve, reject) => {
+      Promise.resolve().then(() => {
       // join(
-      //   this.contract.name.callAsync({ from: "0x0" }),
-      //   this.contract.symbol.callAsync({ from: "0x0" }),
-      //   this.contract.decimals.callAsync({ from: "0x0" }),
-      //   this.contract.organization.callAsync({ from: "0x0" })
-      // )
-      this.contract.name.callAsync({ from: "0x8CB2CeBB0070b231d4BA4D3b747acAebDFbbD142" }).then((name) => {
-        console.log('getContractDetails::name', name)
-        return this.contract.decimals.callAsync({ from: "0x8CB2CeBB0070b231d4BA4D3b747acAebDFbbD142" })
-      }).then((decimals) => {
-        console.log('getContractDetails::decimals', decimals)
+      //   this.contract.name.callAsync(),
+      //   this.contract.symbol.callAsync(),
+      //   this.contract.decimals.callAsync(),
+      //   this.contract.organization.callAsync()
+      // ).then((data) => {
+        // console.log('getContractDetails::data', data)
         // try {
         //   this.contractDetails = {
         //     name: data[0],
