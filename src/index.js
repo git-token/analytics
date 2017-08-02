@@ -148,10 +148,10 @@ export default class GitTokenAnalytics {
     return new Promise((resolve, reject) => {
       console.log('this.contract', this.contract)
       join(
-        this.contract.name.callAsync(),
-        this.contract.symbol.callAsync(),
-        this.contract.decimals.callAsync(),
-        this.contract.organization.callAsync()
+        this.contract.name.call(),
+        this.contract.symbol.call(),
+        this.contract.decimals.call(),
+        this.contract.organization.call()
       ).then((data) => {
         console.log('getContractDetails::data', data)
         try {
