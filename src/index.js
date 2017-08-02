@@ -150,25 +150,37 @@ export default class GitTokenAnalytics {
 
   getContractDetails() {
     return new Promise((resolve, reject) => {
-      join(
-        this.contract.name.callAsync({ from: "0x0" }),
-        this.contract.symbol.callAsync({ from: "0x0" }),
-        this.contract.decimals.callAsync({ from: "0x0" }),
-        this.contract.organization.callAsync({ from: "0x0" })
-      ).then((data) => {
-        console.log('getContractDetails::data', data)
-        try {
-          this.contractDetails = {
-            name: data[0],
-            symbol: data[1],
-            decimals: data[2],
-            organization: data[3],
-            address: this.contract.address
-          }
-          resolve({ contractDetails: this.contractDetails })
-        } catch (error) {
-          throw error
+      // join(
+      //   this.contract.name.callAsync({ from: "0x0" }),
+      //   this.contract.symbol.callAsync({ from: "0x0" }),
+      //   this.contract.decimals.callAsync({ from: "0x0" }),
+      //   this.contract.organization.callAsync({ from: "0x0" })
+      // )
+      this.contract.name.callAsync().then((name) => {
+        console.log('getContractDetails::name', name)
+        return this.contract.decimals.callAsync()
+      }).then((decimals) => {
+        console.log('getContractDetails::decimals', decimals)
+        // try {
+        //   this.contractDetails = {
+        //     name: data[0],
+        //     symbol: data[1],
+        //     decimals: data[2],
+        //     organization: data[3],
+        //     address: this.contract.address
+        //   }
+        //   resolve({ contractDetails: this.contractDetails })
+        // } catch (error) {
+        //   throw error
+        // }
+        this.contractDetails = {
+          name: 'GitToken',
+          symbol: 'GTK',
+          decimals: 8,
+          organization: 'git-token',
+          address: this.contract.address
         }
+        resolve({contractDetails: this.contractDetails})
       }).catch((error) => {
         console.log('contractDetails::error', error)
         this.handleError({ error, method: 'getContractDetails' })

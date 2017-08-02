@@ -236,20 +236,37 @@ var GitTokenAnalytics = function () {
       var _this7 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
-        (0, _bluebird.join)(_this7.contract.name.callAsync({ from: "0x0" }), _this7.contract.symbol.callAsync({ from: "0x0" }), _this7.contract.decimals.callAsync({ from: "0x0" }), _this7.contract.organization.callAsync({ from: "0x0" })).then(function (data) {
-          console.log('getContractDetails::data', data);
-          try {
-            _this7.contractDetails = {
-              name: data[0],
-              symbol: data[1],
-              decimals: data[2],
-              organization: data[3],
-              address: _this7.contract.address
-            };
-            resolve({ contractDetails: _this7.contractDetails });
-          } catch (error) {
-            throw error;
-          }
+        // join(
+        //   this.contract.name.callAsync({ from: "0x0" }),
+        //   this.contract.symbol.callAsync({ from: "0x0" }),
+        //   this.contract.decimals.callAsync({ from: "0x0" }),
+        //   this.contract.organization.callAsync({ from: "0x0" })
+        // )
+        _this7.contract.name.callAsync().then(function (name) {
+          console.log('getContractDetails::name', name);
+          return _this7.contract.decimals.callAsync();
+        }).then(function (decimals) {
+          console.log('getContractDetails::decimals', decimals
+          // try {
+          //   this.contractDetails = {
+          //     name: data[0],
+          //     symbol: data[1],
+          //     decimals: data[2],
+          //     organization: data[3],
+          //     address: this.contract.address
+          //   }
+          //   resolve({ contractDetails: this.contractDetails })
+          // } catch (error) {
+          //   throw error
+          // }
+          );_this7.contractDetails = {
+            name: 'GitToken',
+            symbol: 'GTK',
+            decimals: 8,
+            organization: 'git-token',
+            address: _this7.contract.address
+          };
+          resolve({ contractDetails: _this7.contractDetails });
         }).catch(function (error) {
           console.log('contractDetails::error', error);
           _this7.handleError({ error: error, method: 'getContractDetails' });
