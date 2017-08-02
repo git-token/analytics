@@ -124,6 +124,7 @@ export default class GitTokenAnalytics {
 
     events.watch((error, result) => {
       if (error) { this.handleError({ error, method: '_watchContributionEvents' }) }
+      console.log('_watchContributionEvents::result', result)
       this.saveContributionEvent({ event: result }).then((contribution) => {
         process.send(JSON.stringify({
           event: 'new_contribution',
@@ -149,12 +150,11 @@ export default class GitTokenAnalytics {
 
   getContractDetails() {
     return new Promise((resolve, reject) => {
-      console.log('this.contract', this.contract)
       join(
-        this.contract.name.call(),
-        this.contract.symbol.call(),
-        this.contract.decimals.call(),
-        this.contract.organization.call()
+        this.contract.name.callAsync({ from: "0x0" }),
+        this.contract.symbol.callAsync({ from: "0x0" }),
+        this.contract.decimals.callAsync({ from: "0x0" }),
+        this.contract.organization.callAsync({ from: "0x0" })
       ).then((data) => {
         console.log('getContractDetails::data', data)
         try {
@@ -165,11 +165,10 @@ export default class GitTokenAnalytics {
             organization: data[3],
             address: this.contract.address
           }
+          resolve({ contractDetails: this.contractDetails })
         } catch (error) {
           throw error
         }
-
-        resolve({ contractDetails: this.contractDetails })
       }).catch((error) => {
         console.log('contractDetails::error', error)
         this.handleError({ error, method: 'getContractDetails' })

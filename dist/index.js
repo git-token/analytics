@@ -217,6 +217,7 @@ var GitTokenAnalytics = function () {
         if (error) {
           _this6.handleError({ error: error, method: '_watchContributionEvents' });
         }
+        console.log('_watchContributionEvents::result', result);
         _this6.saveContributionEvent({ event: result }).then(function (contribution) {
           process.send(JSON.stringify({
             event: 'new_contribution',
@@ -235,8 +236,7 @@ var GitTokenAnalytics = function () {
       var _this7 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
-        console.log('this.contract', _this7.contract);
-        (0, _bluebird.join)(_this7.contract.name.call(), _this7.contract.symbol.call(), _this7.contract.decimals.call(), _this7.contract.organization.call()).then(function (data) {
+        (0, _bluebird.join)(_this7.contract.name.callAsync({ from: "0x0" }), _this7.contract.symbol.callAsync({ from: "0x0" }), _this7.contract.decimals.callAsync({ from: "0x0" }), _this7.contract.organization.callAsync({ from: "0x0" })).then(function (data) {
           console.log('getContractDetails::data', data);
           try {
             _this7.contractDetails = {
@@ -246,11 +246,10 @@ var GitTokenAnalytics = function () {
               organization: data[3],
               address: _this7.contract.address
             };
+            resolve({ contractDetails: _this7.contractDetails });
           } catch (error) {
             throw error;
           }
-
-          resolve({ contractDetails: _this7.contractDetails });
         }).catch(function (error) {
           console.log('contractDetails::error', error);
           _this7.handleError({ error: error, method: 'getContractDetails' });
