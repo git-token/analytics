@@ -20,6 +20,42 @@ var _mysql = require('mysql');
 
 var _mysql2 = _interopRequireDefault(_mysql);
 
+var _updateTokenInflationRate = require('./updateTokenInflationRate');
+
+var _updateTokenInflationRate2 = _interopRequireDefault(_updateTokenInflationRate);
+
+var _updateInflationRateAverage = require('./updateInflationRateAverage');
+
+var _updateInflationRateAverage2 = _interopRequireDefault(_updateInflationRateAverage);
+
+var _updateLeaderboard = require('./updateLeaderboard');
+
+var _updateLeaderboard2 = _interopRequireDefault(_updateLeaderboard);
+
+var _updateTotalSupply = require('./updateTotalSupply');
+
+var _updateTotalSupply2 = _interopRequireDefault(_updateTotalSupply);
+
+var _updateContributionFrequency = require('./updateContributionFrequency');
+
+var _updateContributionFrequency2 = _interopRequireDefault(_updateContributionFrequency);
+
+var _updateSummaryStatistics = require('./updateSummaryStatistics');
+
+var _updateSummaryStatistics2 = _interopRequireDefault(_updateSummaryStatistics);
+
+var _saveContributionEvent = require('./saveContributionEvent');
+
+var _saveContributionEvent2 = _interopRequireDefault(_saveContributionEvent);
+
+var _updateRewardTypeStats = require('./updateRewardTypeStats');
+
+var _updateRewardTypeStats2 = _interopRequireDefault(_updateRewardTypeStats);
+
+var _updateUserTokenCreation = require('./updateUserTokenCreation');
+
+var _updateUserTokenCreation2 = _interopRequireDefault(_updateUserTokenCreation);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -41,6 +77,17 @@ var GitTokenAnalytics = function () {
     var web3Provider = options.web3Provider,
         mysqlOpts = options.mysqlOpts,
         contractAddress = options.contractAddress;
+
+
+    this.saveContributionEvent = _saveContributionEvent2.default.bind(this);
+    this.updateLeaderboard = _updateLeaderboard2.default.bind(this);
+    this.updateTotalSupply = _updateTotalSupply2.default.bind(this);
+    this.updateContributionFrequency = _updateContributionFrequency2.default.bind(this);
+    this.updateSummaryStatistics = _updateSummaryStatistics2.default.bind(this);
+    this.updateTokenInflationRate = _updateTokenInflationRate2.default.bind(this);
+    this.updateInflationRateAverage = _updateInflationRateAverage2.default.bind(this);
+    this.updateRewardTypeStats = _updateRewardTypeStats2.default.bind(this);
+    this.updateUserTokenCreation = _updateUserTokenCreation2.default.bind(this);
 
     if (web3Provider && mysqlOpts && contractAddress && abi) {
       this.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
@@ -70,7 +117,7 @@ var GitTokenAnalytics = function () {
         }).then(function () {
           return _this.getContractDetails();
         }).then(function () {
-          _this.watchContributionEvents();
+          _this._watchContributionEvents();
           return null;
         }).then(function () {
           resolve({
@@ -157,15 +204,15 @@ var GitTokenAnalytics = function () {
       });
     }
   }, {
-    key: 'watchContributionEvents',
-    value: function watchContributionEvents() {
+    key: '_watchContributionEvents',
+    value: function _watchContributionEvents() {
       var _this6 = this;
 
       var events = this.contract.Contribution({}, { fromBlock: 0, toBlock: 'latest' });
 
       events.watch(function (error, result) {
         if (error) {
-          _this6.handleError({ error: error, method: 'watchContributionEvents' });
+          _this6.handleError({ error: error, method: '_watchContributionEvents' });
         }
         _this6.saveContributionEvent({ event: result }).then(function (contribution) {
           process.send(JSON.stringify({
@@ -173,141 +220,37 @@ var GitTokenAnalytics = function () {
             data: contribution,
             message: 'New contribution received and saved.'
           }));
-          return (0, _bluebird.join)(_this6.updateLeaderboard({ contribution: contribution }), _this6.updateTotalSupply({ contribution: contribution }), _this6.updateContributionFrequency({ contribution: contribution }));
+          return (0, _bluebird.join)(_this6.updateLeaderboard({ contribution: contribution }), _this6.updateTotalSupply({ contribution: contribution }), _this6.updateContributionFrequency({ contribution: contribution }), _this6.updateTokenInflationRate({ contribution: contribution }), _this6.updateInflationRateAverage({ contribution: contribution }), _this6.updateSummaryStatistics({ contribution: contribution }), _this6.updateRewardTypeStats({ contribution: contribution }), _this6.updateUserTokenCreation({ contribution: contribution }), contribution);
         }).then(function (data) {
-          console.log('data', data);
-        });
-      });
-    }
-  }, {
-    key: 'updateContributionFrequency',
-    value: function updateContributionFrequency(_ref6) {
-      var _this7 = this;
-
-      var contribution = _ref6.contribution;
-
-      return new _bluebird2.default(function (resolve, reject) {
-        _this7.query({ queryString: '\n        CREATE TABLE IF NOT EXISTS contribution_frequency (\n          rewardType     CHARACTER(66) PRIMARY KEY,\n          count          BIGINT NOT NULL DEFAULT 0,\n          percentOfTotal REAL\n        );\n      ' }).then(function () {
-          return _this7.query({
-            queryString: '\n            INSERT INTO contribution_frequency (\n              rewardType,\n              count,\n              percentOfTotal\n            ) SELECT rewardType, count(rewardType), count(rewardType)/(SELECT count(*)*1.0 FROM contributions)*100.0 FROM contributions GROUP BY rewardType\n            ON DUPLICATE KEY UPDATE\n            rewardType=VALUES(rewardType),\n            count=VALUES(count),\n            percentOfTotal=VALUES(percentOfTotal);\n          '
-          });
-        }).then(function () {
-          return _this7.query({
-            queryString: '\n            SELECT * FROM contribution_frequency;\n          '
-          });
-        }).then(function (contributionFrequency) {
-          resolve(contributionFrequency);
-        }).catch(function (error) {
-          reject(error);
-        });
-      });
-    }
-  }, {
-    key: 'updateTotalSupply',
-    value: function updateTotalSupply(_ref7) {
-      var _this8 = this;
-
-      var contribution = _ref7.contribution;
-
-      return new _bluebird2.default(function (resolve, reject) {
-        var date = contribution.date;
-
-        _this8.query({
-          queryString: '\n          CREATE TABLE IF NOT EXISTS total_supply (\n            totalSupply    BIGINT NOT NULL DEFAULT 0,\n            date           BIGINT NOT NULL DEFAULT 0 PRIMARY KEY\n          );\n        '
-        }).then(function () {
-          return _this8.query({
-            queryString: '\n            INSERT INTO total_supply (\n              totalSupply,\n              date\n            ) VALUES (\n              (SELECT (sum(value)+sum(reservedValue)) FROM contributions WHERE date <= ' + date + '),\n              ' + date + '\n            ) ;\n          '
-          });
-        }).then(function () {
-          return _this8.query({
-            queryString: '\n            SELECT * FROM total_supply ORDER BY date DESC LIMIT 1;\n          '
-          });
-        }).then(function (totalSupply) {
-          resolve(totalSupply[0]);
-        }).catch(function (error) {
-          _this8.handleError({ error: error });
-        });
-      });
-    }
-  }, {
-    key: 'updateLeaderboard',
-    value: function updateLeaderboard(_ref8) {
-      var _this9 = this;
-
-      var contribution = _ref8.contribution;
-
-      return new _bluebird2.default(function (resolve, reject) {
-        var username = contribution.username,
-            contributor = contribution.contributor;
-
-        _this9.query({ queryString: '\n        CREATE TABLE IF NOT EXISTS leaderboard (\n          username             CHARACTER(42) PRIMARY KEY,\n          contributorAddress   CHARACTER(42),\n          value                BIGINT NOT NULL DEFAULT 0,\n          latestContribution   BIGINT NOT NULL DEFAULT 0,\n          numContributions     BIGINT NOT NULL DEFAULT 0,\n          valuePerContribution REAL\n        );\n      ' }).then(function () {
-          return _this9.query({ queryString: '\n            INSERT INTO leaderboard (\n              username,\n              contributorAddress,\n              value,\n              latestContribution,\n              numContributions,\n              valuePerContribution\n            ) VALUES (\n              "' + username + '",\n              "' + contribution['contributor'] + '",\n              (SELECT sum(value) FROM contributions WHERE username = "' + username + '"),\n              (SELECT max(date) FROM contributions WHERE username = "' + username + '"),\n              (SELECT count(*) FROM contributions WHERE username = "' + username + '"),\n              (SELECT sum(value)/count(*) FROM contributions WHERE username = "' + username + '")\n            ) ON DUPLICATE KEY UPDATE\n              value=VALUES(value),\n              latestContribution=VALUES(latestContribution),\n              numContributions=VALUES(numContributions),\n              valuePerContribution=VALUES(valuePerContribution)\n            ;\n          ' });
-        }).then(function () {
-          // Replace "0x0" with contract address;
-          return _this9.query({ queryString: '\n            INSERT INTO leaderboard (\n              username,\n              contributorAddress,\n              value,\n              latestContribution,\n              numContributions,\n              valuePerContribution\n            ) VALUES (\n              "Total",\n              "' + _this9.contractDetails['address'] + '",\n              (SELECT sum(value)+sum(reservedValue) FROM contributions),\n              (SELECT max(date) FROM contributions),\n              (SELECT count(*) FROM contributions),\n              (SELECT (sum(value)+sum(reservedValue))/count(*) FROM contributions)\n            ) ON DUPLICATE KEY UPDATE\n              value=VALUES(value),\n              latestContribution=VALUES(latestContribution),\n              numContributions=VALUES(numContributions),\n              valuePerContribution=VALUES(valuePerContribution)\n            ;\n          '
-          });
-        }).then(function () {
-          return _this9.query({ queryString: '\n          SELECT * FROM leaderboard;\n        ' });
-        }).then(function (leaderboard) {
-          resolve(leaderboard);
-        }).catch(function (error) {
-          _this9.handleError({ error: error });
-        });
-      });
-    }
-  }, {
-    key: 'saveContributionEvent',
-    value: function saveContributionEvent(_ref9) {
-      var _this10 = this;
-
-      var event = _ref9.event;
-
-      return new _bluebird2.default(function (resolve, reject) {
-        var transactionHash = event.transactionHash,
-            args = event.args;
-
-        _this10.query({
-          queryString: '\n          CREATE TABLE IF NOT EXISTS contributions (\n            txHash          CHARACTER(66) PRIMARY KEY,\n            contributor     CHARACTER(42),\n            username        CHARACTER(42),\n            value           BIGINT NOT NULL DEFAULT 0,\n            reservedValue   BIGINT NOT NULL DEFAULT 0,\n            date            BIGINT NOT NULL DEFAULT 0,\n            rewardType      CHARACTER(42)\n          ) ENGINE = INNODB;\n        '
-        }).then(function () {
-          return _this10.query({
-            queryString: '\n            INSERT INTO contributions (\n              txHash,\n              contributor,\n              username,\n              value,\n              reservedValue,\n              date,\n              rewardType\n            ) VALUES (\n              "' + transactionHash + '",\n              "' + args['contributor'] + '",\n              "' + args['username'] + '",\n              ' + args['value'].toNumber() + ',\n              ' + args['reservedValue'].toNumber() + ',\n              ' + args['date'].toNumber() + ',\n              "' + args['rewardType'] + '"\n            );\n          '
-          });
-        }).then(function () {
-          return _this10.query({
-            queryString: '\n            SELECT * FROM contributions WHERE txHash = "' + transactionHash + '";\n          '
-          });
-        }).then(function (result) {
-          resolve(result[0]);
-        }).catch(function (error) {
-          _this10.handleError({ error: error, method: 'saveContributionEvent' });
+          console.log(JSON.stringify(data, null, 2));
         });
       });
     }
   }, {
     key: 'getContractDetails',
     value: function getContractDetails() {
-      var _this11 = this;
+      var _this7 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
-        (0, _bluebird.join)(_this11.contract.name.callAsync(), _this11.contract.symbol.callAsync(), _this11.contract.decimals.callAsync(), _this11.contract.organization.callAsync()).then(function (data) {
-          _this11.contractDetails = {
+        (0, _bluebird.join)(_this7.contract.name.callAsync(), _this7.contract.symbol.callAsync(), _this7.contract.decimals.callAsync(), _this7.contract.organization.callAsync()).then(function (data) {
+          _this7.contractDetails = {
             name: data[0],
             symbol: data[1],
             decimals: data[2],
             organization: data[3],
-            address: _this11.contract.address
+            address: _this7.contract.address
           };
 
-          resolve({ contractDetails: _this11.contractDetails });
+          resolve({ contractDetails: _this7.contractDetails });
         }).catch(function (error) {
-          _this11.handleError({ error: error, method: 'getContractDetails' });
+          _this7.handleError({ error: error, method: 'getContractDetails' });
         });
       });
     }
   }, {
     key: 'listen',
     value: function listen() {
-      var _this12 = this;
+      var _this8 = this;
 
       console.log('GitToken Analytics Listening on Separate Process: ', process.pid);
       process.on('message', function (msg) {
@@ -321,13 +264,58 @@ var GitTokenAnalytics = function () {
                 mysqlOpts = data.mysqlOpts,
                 contractAddress = data.contractAddress;
 
-            _this12.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
+            _this8.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
               process.send(JSON.stringify({ event: event, data: configured, message: 'GitToken Analytics Processor Configured' }));
             });
             break;
           case 'contract_details':
-            _this12.getContractDetails().then(function (result) {
+            _this8.getContractDetails().then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: 'Contract details retrieved.' }));
+            });
+            break;
+          case 'get_contributions':
+            _this8.query({ queryString: 'SELECT * FROM contributions;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
+          case 'get_total_supply':
+            _this8.query({ queryString: 'SELECT * FROM total_supply;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
+          case 'get_leaderboard':
+            _this8.query({ queryString: 'SELECT * FROM leaderboard;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
+          case 'get_contribution_frequency':
+            _this8.query({ queryString: 'SELECT * FROM contribution_frequency;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
+          case 'get_token_inflation':
+            _this8.query({ queryString: 'SELECT * FROM token_inflation;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
+          case 'get_token_inflation_mean':
+            _this8.query({ queryString: 'SELECT * FROM token_inflation_mean;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
+          case 'get_user_token_creation':
+            _this8.query({ queryString: 'SELECT * FROM user_token_creation;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
+          case 'get_reward_type_stats':
+            _this8.query({ queryString: 'SELECT * FROM reward_type_stats;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
+          case 'get_summary_statistics':
+            _this8.query({ queryString: 'SELECT * FROM summary_statistics;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           default:
@@ -341,9 +329,9 @@ var GitTokenAnalytics = function () {
     }
   }, {
     key: 'handleError',
-    value: function handleError(_ref10) {
-      var error = _ref10.error,
-          method = _ref10.method;
+    value: function handleError(_ref6) {
+      var error = _ref6.error,
+          method = _ref6.method;
 
       /**
        * TODO Add switch case handler based on error codes, etc.

@@ -3,6 +3,16 @@ import Promise, { join, promisifyAll } from 'bluebird'
 import Web3 from 'web3'
 import mysql from 'mysql'
 
+import updateTokenInflationRate from './updateTokenInflationRate'
+import updateInflationRateAverage from './updateInflationRateAverage'
+import updateLeaderboard from './updateLeaderboard'
+import updateTotalSupply from './updateTotalSupply'
+import updateContributionFrequency from './updateContributionFrequency'
+import updateSummaryStatistics from './updateSummaryStatistics'
+import saveContributionEvent from './saveContributionEvent'
+import updateRewardTypeStats from './updateRewardTypeStats'
+import updateUserTokenCreation from './updateUserTokenCreation'
+
 const { abi } = JSON.parse(GitTokenContract)
 
 export default class GitTokenAnalytics {
@@ -13,6 +23,18 @@ export default class GitTokenAnalytics {
   constructor(options) {
     this.listen()
     const { web3Provider, mysqlOpts, contractAddress } = options
+
+    this.saveContributionEvent = saveContributionEvent.bind(this)
+    this.updateLeaderboard = updateLeaderboard.bind(this)
+    this.updateTotalSupply = updateTotalSupply.bind(this)
+    this.updateContributionFrequency = updateContributionFrequency.bind(this)
+    this.updateSummaryStatistics = updateSummaryStatistics.bind(this)
+    this.updateTokenInflationRate = updateTokenInflationRate.bind(this)
+    this.updateInflationRateAverage = updateInflationRateAverage.bind(this)
+    this.updateRewardTypeStats = updateRewardTypeStats.bind(this)
+    this.updateUserTokenCreation = updateUserTokenCreation.bind(this)
+
+
     if (web3Provider && mysqlOpts && contractAddress && abi) {
       this.configure({ web3Provider, mysqlOpts, contractAddress, abi }).then((configured) => {
         console.log('GitToken Analytics Processor Configured')
@@ -32,7 +54,7 @@ export default class GitTokenAnalytics {
       }).then(() => {
         return this.getContractDetails()
       }).then(() => {
-        this.watchContributionEvents()
+        this._watchContributionEvents()
         return null
       }).then(() => {
         resolve({
@@ -94,11 +116,11 @@ export default class GitTokenAnalytics {
     })
   }
 
-  watchContributionEvents() {
+  _watchContributionEvents() {
     const events = this.contract.Contribution({}, { fromBlock: 0, toBlock: 'latest' })
 
     events.watch((error, result) => {
-      if (error) { this.handleError({ error, method: 'watchContributionEvents' }) }
+      if (error) { this.handleError({ error, method: '_watchContributionEvents' }) }
       this.saveContributionEvent({ event: result }).then((contribution) => {
         process.send(JSON.stringify({
           event: 'new_contribution',
@@ -108,205 +130,16 @@ export default class GitTokenAnalytics {
         return join(
           this.updateLeaderboard({ contribution }),
           this.updateTotalSupply({ contribution }),
-          this.updateContributionFrequency({ contribution })
+          this.updateContributionFrequency({ contribution }),
+          this.updateTokenInflationRate({ contribution }),
+          this.updateInflationRateAverage({ contribution }),
+          this.updateSummaryStatistics({ contribution }),
+          this.updateRewardTypeStats({ contribution }),
+          this.updateUserTokenCreation({ contribution }),
+          contribution
         )
       }).then((data) => {
-        console.log('data', data)
-      })
-    })
-  }
-
-  updateContributionFrequency({ contribution }) {
-    return new Promise((resolve, reject) => {
-      this.query({ queryString: `
-        CREATE TABLE IF NOT EXISTS contribution_frequency (
-          rewardType     CHARACTER(66) PRIMARY KEY,
-          count          BIGINT NOT NULL DEFAULT 0,
-          percentOfTotal REAL
-        );
-      `}).then(() => {
-        return this.query({
-          queryString: `
-            INSERT INTO contribution_frequency (
-              rewardType,
-              count,
-              percentOfTotal
-            ) SELECT rewardType, count(rewardType), count(rewardType)/(SELECT count(*)*1.0 FROM contributions)*100.0 FROM contributions GROUP BY rewardType
-            ON DUPLICATE KEY UPDATE
-            rewardType=VALUES(rewardType),
-            count=VALUES(count),
-            percentOfTotal=VALUES(percentOfTotal);
-          `
-        })
-      }).then(() => {
-        return this.query({
-          queryString: `
-            SELECT * FROM contribution_frequency;
-          `
-        })
-      }).then((contributionFrequency) => {
-        resolve(contributionFrequency)
-      }).catch((error) => {
-        reject(error)
-      })
-    })
-  }
-
-  updateTotalSupply({ contribution }) {
-    return new Promise((resolve, reject) => {
-      const { date } = contribution
-      this.query({
-        queryString: `
-          CREATE TABLE IF NOT EXISTS total_supply (
-            totalSupply    BIGINT NOT NULL DEFAULT 0,
-            date           BIGINT NOT NULL DEFAULT 0 PRIMARY KEY
-          );
-        `
-      }).then(() => {
-        return this.query({
-          queryString: `
-            INSERT INTO total_supply (
-              totalSupply,
-              date
-            ) VALUES (
-              (SELECT (sum(value)+sum(reservedValue)) FROM contributions WHERE date <= ${date}),
-              ${date}
-            ) ;
-          `
-        })
-      }).then(() => {
-        return this.query({
-          queryString: `
-            SELECT * FROM total_supply ORDER BY date DESC LIMIT 1;
-          `
-        })
-      }).then((totalSupply) => {
-        resolve(totalSupply[0])
-      }).catch((error) => {
-        this.handleError({ error })
-      })
-    })
-  }
-
-  updateLeaderboard({ contribution }) {
-    return new Promise((resolve, reject) => {
-      const { username, contributor } = contribution
-      this.query({ queryString: `
-        CREATE TABLE IF NOT EXISTS leaderboard (
-          username             CHARACTER(42) PRIMARY KEY,
-          contributorAddress   CHARACTER(42),
-          value                BIGINT NOT NULL DEFAULT 0,
-          latestContribution   BIGINT NOT NULL DEFAULT 0,
-          numContributions     BIGINT NOT NULL DEFAULT 0,
-          valuePerContribution REAL
-        );
-      `}).then(() => {
-        return this.query({ queryString: `
-            INSERT INTO leaderboard (
-              username,
-              contributorAddress,
-              value,
-              latestContribution,
-              numContributions,
-              valuePerContribution
-            ) VALUES (
-              "${username}",
-              "${contribution['contributor']}",
-              (SELECT sum(value) FROM contributions WHERE username = "${username}"),
-              (SELECT max(date) FROM contributions WHERE username = "${username}"),
-              (SELECT count(*) FROM contributions WHERE username = "${username}"),
-              (SELECT sum(value)/count(*) FROM contributions WHERE username = "${username}")
-            ) ON DUPLICATE KEY UPDATE
-              value=VALUES(value),
-              latestContribution=VALUES(latestContribution),
-              numContributions=VALUES(numContributions),
-              valuePerContribution=VALUES(valuePerContribution)
-            ;
-          ` })
-       }).then(() => {
-        // Replace "0x0" with contract address;
-        return this.query({ queryString: `
-            INSERT INTO leaderboard (
-              username,
-              contributorAddress,
-              value,
-              latestContribution,
-              numContributions,
-              valuePerContribution
-            ) VALUES (
-              "Total",
-              "${this.contractDetails['address']}",
-              (SELECT sum(value)+sum(reservedValue) FROM contributions),
-              (SELECT max(date) FROM contributions),
-              (SELECT count(*) FROM contributions),
-              (SELECT (sum(value)+sum(reservedValue))/count(*) FROM contributions)
-            ) ON DUPLICATE KEY UPDATE
-              value=VALUES(value),
-              latestContribution=VALUES(latestContribution),
-              numContributions=VALUES(numContributions),
-              valuePerContribution=VALUES(valuePerContribution)
-            ;
-          `
-        })
-      }).then(() => {
-        return this.query({ queryString: `
-          SELECT * FROM leaderboard;
-        ` })
-      }).then((leaderboard) => {
-        resolve(leaderboard)
-      }).catch((error) => {
-        this.handleError({ error })
-      })
-    })
-  }
-
-  saveContributionEvent({ event }) {
-    return new Promise((resolve, reject) => {
-      const { transactionHash, args } = event
-      this.query({
-        queryString: `
-          CREATE TABLE IF NOT EXISTS contributions (
-            txHash          CHARACTER(66) PRIMARY KEY,
-            contributor     CHARACTER(42),
-            username        CHARACTER(42),
-            value           BIGINT NOT NULL DEFAULT 0,
-            reservedValue   BIGINT NOT NULL DEFAULT 0,
-            date            BIGINT NOT NULL DEFAULT 0,
-            rewardType      CHARACTER(42)
-          ) ENGINE = INNODB;
-        `,
-      }).then(() => {
-        return this.query({
-          queryString: `
-            INSERT INTO contributions (
-              txHash,
-              contributor,
-              username,
-              value,
-              reservedValue,
-              date,
-              rewardType
-            ) VALUES (
-              "${transactionHash}",
-              "${args['contributor']}",
-              "${args['username']}",
-              ${args['value'].toNumber()},
-              ${args['reservedValue'].toNumber()},
-              ${args['date'].toNumber()},
-              "${args['rewardType']}"
-            );
-          `
-        })
-      }).then(() => {
-        return this.query({
-          queryString: `
-            SELECT * FROM contributions WHERE txHash = "${transactionHash}";
-          `
-        })
-      }).then((result) => {
-        resolve(result[0])
-      }).catch((error) => {
-        this.handleError({ error, method: 'saveContributionEvent' })
+        console.log(JSON.stringify(data, null, 2))
       })
     })
   }
@@ -348,6 +181,51 @@ export default class GitTokenAnalytics {
         case 'contract_details':
           this.getContractDetails().then((result) => {
             process.send(JSON.stringify({ event, data: result, message: 'Contract details retrieved.' }))
+          })
+          break;
+        case 'get_contributions':
+          this.query({ queryString: `SELECT * FROM contributions;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'get_total_supply':
+          this.query({ queryString: `SELECT * FROM total_supply;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'get_leaderboard':
+          this.query({ queryString: `SELECT * FROM leaderboard;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'get_contribution_frequency':
+          this.query({ queryString: `SELECT * FROM contribution_frequency;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'get_token_inflation':
+          this.query({ queryString: `SELECT * FROM token_inflation;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'get_token_inflation_mean':
+          this.query({ queryString: `SELECT * FROM token_inflation_mean;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'get_user_token_creation':
+          this.query({ queryString: `SELECT * FROM user_token_creation;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'get_reward_type_stats':
+          this.query({ queryString: `SELECT * FROM reward_type_stats;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'get_summary_statistics':
+          this.query({ queryString: `SELECT * FROM summary_statistics;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
           })
           break;
         default:
