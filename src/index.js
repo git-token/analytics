@@ -13,7 +13,7 @@ import saveContributionEvent from './saveContributionEvent'
 import updateRewardTypeStats from './updateRewardTypeStats'
 import updateUserTokenCreation from './updateUserTokenCreation'
 
-const { abi } = JSON.parse(GitTokenContract)
+// const { abi } = JSON.parse(GitTokenContract)
 
 export default class GitTokenAnalytics {
   /**
@@ -149,29 +149,38 @@ export default class GitTokenAnalytics {
 
   getContractDetails() {
     return new Promise((resolve, reject) => {
-      join(
-        this.contract.name.callAsync(),
-        this.contract.symbol.callAsync(),
-        this.contract.decimals.callAsync(),
-        this.contract.organization.callAsync()
-      ).then((data) => {
-        console.log('getContractDetails::data', data)
-        try {
-          this.contractDetails = {
-            name: data[0],
-            symbol: data[1],
-            decimals: data[2],
-            organization: data[3],
-            address: this.contract.address
-          }
-          resolve({ contractDetails: this.contractDetails })
-        } catch (error) {
-          throw error
-        }
-      }).catch((error) => {
-        console.log('contractDetails::error', error)
-        this.handleError({ error, method: 'getContractDetails' })
-      })
+      console.log('this.contract.name', this.contract.name)
+      this.contractDetails = {
+        name: 'GitToken',
+        symbol: 'GTK',
+        decimals: 8,
+        organization: 'git-token',
+        address: this.contract.address
+      }
+      resolve(this.contractDetails)
+      // join(
+      //   this.contract.name.callAsync(),
+      //   this.contract.symbol.callAsync(),
+      //   this.contract.decimals.callAsync(),
+      //   this.contract.organization.callAsync()
+      // ).then((data) => {
+      //   console.log('getContractDetails::data', data)
+      //   try {
+      //     this.contractDetails = {
+      //       name: data[0],
+      //       symbol: data[1],
+      //       decimals: data[2],
+      //       organization: data[3],
+      //       address: this.contract.address
+      //     }
+      //     resolve({ contractDetails: this.contractDetails })
+      //   } catch (error) {
+      //     throw error
+      //   }
+      // }).catch((error) => {
+      //   console.log('contractDetails::error', error)
+      //   this.handleError({ error, method: 'getContractDetails' })
+      // })
     })
   }
 
@@ -182,7 +191,7 @@ export default class GitTokenAnalytics {
       const { event, data } = JSON.parse(msg)
       switch(event) {
         case 'configure':
-          const { web3Provider, mysqlOpts, contractAddress } = data
+          const { web3Provider, mysqlOpts, contractAddress, abi } = data
           this.configure({ web3Provider, mysqlOpts, contractAddress, abi }).then((configured) => {
             process.send(JSON.stringify({ event, data: configured, message: 'GitToken Analytics Processor Configured' }))
             this._watchContributionEvents()
