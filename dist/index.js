@@ -91,8 +91,9 @@ var GitTokenAnalytics = function () {
     this.updateRewardTypeStats = _updateRewardTypeStats2.default.bind(this);
     this.updateUserTokenCreation = _updateUserTokenCreation2.default.bind(this);
 
+    this.contractDetails = {};
+
     if (web3Provider && mysqlOpts && contractAddress && abi) {
-      console.log('Hello We shouldnt be here!');
       this.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
         console.log('GitToken Analytics Processor Configured');
         console.log(JSON.stringify(configured, null, 2));

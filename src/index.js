@@ -34,9 +34,10 @@ export default class GitTokenAnalytics {
     this.updateRewardTypeStats = updateRewardTypeStats.bind(this)
     this.updateUserTokenCreation = updateUserTokenCreation.bind(this)
 
+    this.contractDetails = {}
+
 
     if (web3Provider && mysqlOpts && contractAddress && abi) {
-      console.log('Hello We shouldnt be here!')
       this.configure({ web3Provider, mysqlOpts, contractAddress, abi }).then((configured) => {
         console.log('GitToken Analytics Processor Configured')
         console.log(JSON.stringify(configured, null, 2))
