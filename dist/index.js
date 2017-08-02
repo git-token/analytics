@@ -90,6 +90,7 @@ var GitTokenAnalytics = function () {
     this.updateUserTokenCreation = _updateUserTokenCreation2.default.bind(this);
 
     if (web3Provider && mysqlOpts && contractAddress && abi) {
+      console.log('Hello We shouldnt be here!');
       this.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
         console.log('GitToken Analytics Processor Configured');
         console.log(JSON.stringify(configured, null, 2));
@@ -120,10 +121,12 @@ var GitTokenAnalytics = function () {
           _this._watchContributionEvents();
           return null;
         }).then(function () {
+          console.log('this.contractDetails', _this.contractDetails);
           resolve({
             contractDetails: _this.contractDetails
           });
         }).catch(function (error) {
+          console.log('error', error);
           _this.handleError({ error: error, method: 'configure' });
         });
       });
@@ -261,6 +264,8 @@ var GitTokenAnalytics = function () {
 
       console.log('GitToken Analytics Listening on Separate Process: ', process.pid);
       process.on('message', function (msg) {
+        console.log('msg', msg);
+
         var _JSON$parse2 = JSON.parse(msg),
             event = _JSON$parse2.event,
             data = _JSON$parse2.data;
