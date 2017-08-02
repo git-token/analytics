@@ -146,6 +146,7 @@ export default class GitTokenAnalytics {
 
   getContractDetails() {
     return new Promise((resolve, reject) => {
+      console.log('this.contract', this.contract)
       join(
         this.contract.name.callAsync(),
         this.contract.symbol.callAsync(),

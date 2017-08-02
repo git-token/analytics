@@ -232,6 +232,7 @@ var GitTokenAnalytics = function () {
       var _this7 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
+        console.log('this.contract', _this7.contract);
         (0, _bluebird.join)(_this7.contract.name.callAsync(), _this7.contract.symbol.callAsync(), _this7.contract.decimals.callAsync(), _this7.contract.organization.callAsync()).then(function (data) {
           _this7.contractDetails = {
             name: data[0],
