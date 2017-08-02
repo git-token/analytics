@@ -237,34 +237,20 @@ var GitTokenAnalytics = function () {
       var _this8 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
-        _bluebird2.default.resolve().then(function () {
-          // join(
-          //   this.contract.name.callAsync(),
-          //   this.contract.symbol.callAsync(),
-          //   this.contract.decimals.callAsync(),
-          //   this.contract.organization.callAsync()
-          // ).then((data) => {
-          // console.log('getContractDetails::data', data)
-          // try {
-          //   this.contractDetails = {
-          //     name: data[0],
-          //     symbol: data[1],
-          //     decimals: data[2],
-          //     organization: data[3],
-          //     address: this.contract.address
-          //   }
-          //   resolve({ contractDetails: this.contractDetails })
-          // } catch (error) {
-          //   throw error
-          // }
-          _this8.contractDetails = {
-            name: 'GitToken',
-            symbol: 'GTK',
-            decimals: 8,
-            organization: 'git-token',
-            address: _this8.contract.address
-          };
-          resolve({ contractDetails: _this8.contractDetails });
+        (0, _bluebird.join)(_this8.contract.name.callAsync(), _this8.contract.symbol.callAsync(), _this8.contract.decimals.callAsync(), _this8.contract.organization.callAsync()).then(function (data) {
+          console.log('getContractDetails::data', data);
+          try {
+            _this8.contractDetails = {
+              name: data[0],
+              symbol: data[1],
+              decimals: data[2],
+              organization: data[3],
+              address: _this8.contract.address
+            };
+            resolve({ contractDetails: _this8.contractDetails });
+          } catch (error) {
+            throw error;
+          }
         }).catch(function (error) {
           console.log('contractDetails::error', error);
           _this8.handleError({ error: error, method: 'getContractDetails' });

@@ -149,34 +149,25 @@ export default class GitTokenAnalytics {
 
   getContractDetails() {
     return new Promise((resolve, reject) => {
-      Promise.resolve().then(() => {
-      // join(
-      //   this.contract.name.callAsync(),
-      //   this.contract.symbol.callAsync(),
-      //   this.contract.decimals.callAsync(),
-      //   this.contract.organization.callAsync()
-      // ).then((data) => {
-        // console.log('getContractDetails::data', data)
-        // try {
-        //   this.contractDetails = {
-        //     name: data[0],
-        //     symbol: data[1],
-        //     decimals: data[2],
-        //     organization: data[3],
-        //     address: this.contract.address
-        //   }
-        //   resolve({ contractDetails: this.contractDetails })
-        // } catch (error) {
-        //   throw error
-        // }
-        this.contractDetails = {
-          name: 'GitToken',
-          symbol: 'GTK',
-          decimals: 8,
-          organization: 'git-token',
-          address: this.contract.address
+      join(
+        this.contract.name.callAsync(),
+        this.contract.symbol.callAsync(),
+        this.contract.decimals.callAsync(),
+        this.contract.organization.callAsync()
+      ).then((data) => {
+        console.log('getContractDetails::data', data)
+        try {
+          this.contractDetails = {
+            name: data[0],
+            symbol: data[1],
+            decimals: data[2],
+            organization: data[3],
+            address: this.contract.address
+          }
+          resolve({ contractDetails: this.contractDetails })
+        } catch (error) {
+          throw error
         }
-        resolve({contractDetails: this.contractDetails})
       }).catch((error) => {
         console.log('contractDetails::error', error)
         this.handleError({ error, method: 'getContractDetails' })
