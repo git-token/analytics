@@ -153,6 +153,7 @@ export default class GitTokenAnalytics {
         this.contract.decimals.callAsync(),
         this.contract.organization.callAsync()
       ).then((data) => {
+        console.log('getContractDetails::data', data)
         try {
           this.contractDetails = {
             name: data[0],
