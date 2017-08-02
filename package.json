@@ -18,7 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "bluebird": "^3.5.0",
-    "gittoken-contracts": "0.0.17",
+    "gittoken-contracts": "0.0.18",
     "mysql": "^2.14.0",
     "sqlite": "^2.8.0",
     "web3": "^0.20.0"
