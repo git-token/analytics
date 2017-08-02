@@ -71,6 +71,8 @@ var GitTokenAnalytics = function () {
    * @param  {Object} options { mysql: { ...} }
    */
   function GitTokenAnalytics(options) {
+    var _this = this;
+
     _classCallCheck(this, GitTokenAnalytics);
 
     this.listen();
@@ -94,6 +96,7 @@ var GitTokenAnalytics = function () {
       this.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
         console.log('GitToken Analytics Processor Configured');
         console.log(JSON.stringify(configured, null, 2));
+        _this._watchContributionEvents();
       });
     } else {
       console.log('GitToken Analytics Processor listening for \'configure\' event.');
@@ -103,7 +106,7 @@ var GitTokenAnalytics = function () {
   _createClass(GitTokenAnalytics, [{
     key: 'configure',
     value: function configure(_ref) {
-      var _this = this;
+      var _this2 = this;
 
       var web3Provider = _ref.web3Provider,
           mysqlOpts = _ref.mysqlOpts,
@@ -111,47 +114,44 @@ var GitTokenAnalytics = function () {
           abi = _ref.abi;
 
       return new _bluebird2.default(function (resolve, reject) {
-        _this.establishMySqlConnection({ mysqlOpts: mysqlOpts }).then(function () {
-          return _this.configureWeb3Provider({ web3Provider: web3Provider });
+        _this2.establishMySqlConnection({ mysqlOpts: mysqlOpts }).then(function () {
+          return _this2.configureWeb3Provider({ web3Provider: web3Provider });
         }).then(function () {
-          return _this.configureContract({ abi: abi, contractAddress: contractAddress });
+          return _this2.configureContract({ abi: abi, contractAddress: contractAddress });
         }).then(function () {
-          return _this.getContractDetails();
+          return _this2.getContractDetails();
         }).then(function () {
-          _this._watchContributionEvents();
-          return null;
-        }).then(function () {
-          console.log('this.contractDetails', _this.contractDetails);
+          console.log('this.contractDetails', _this2.contractDetails);
           resolve({
-            contractDetails: _this.contractDetails
+            contractDetails: _this2.contractDetails
           });
         }).catch(function (error) {
           console.log('error', error);
-          _this.handleError({ error: error, method: 'configure' });
+          _this2.handleError({ error: error, method: 'configure' });
         });
       });
     }
   }, {
     key: 'establishMySqlConnection',
     value: function establishMySqlConnection(_ref2) {
-      var _this2 = this;
+      var _this3 = this;
 
       var mysqlOpts = _ref2.mysqlOpts;
 
       return new _bluebird2.default(function (resolve, reject) {
         try {
-          _this2.mysql = _mysql2.default.createConnection(_extends({}, mysqlOpts));
-          _this2.mysql.connect();
-          resolve({ mysql: _this2.mysql });
+          _this3.mysql = _mysql2.default.createConnection(_extends({}, mysqlOpts));
+          _this3.mysql.connect();
+          resolve({ mysql: _this3.mysql });
         } catch (error) {
-          _this2.handleError({ error: error, method: 'establishMySqlConnection' });
+          _this3.handleError({ error: error, method: 'establishMySqlConnection' });
         }
       });
     }
   }, {
     key: 'query',
     value: function query(_ref3) {
-      var _this3 = this;
+      var _this4 = this;
 
       var queryString = _ref3.queryString,
           _ref3$queryObject = _ref3.queryObject,
@@ -159,9 +159,9 @@ var GitTokenAnalytics = function () {
 
       return new _bluebird2.default(function (resolve, reject) {
         /* TODO: Check mysql docs for second param (queryObject) */
-        _this3.mysql.query(queryString, function (error, result) {
+        _this4.mysql.query(queryString, function (error, result) {
           if (error) {
-            _this3.handleError({ error: error, method: 'query' });
+            _this4.handleError({ error: error, method: 'query' });
           }
           resolve(result);
         });
@@ -170,61 +170,61 @@ var GitTokenAnalytics = function () {
   }, {
     key: 'configureWeb3Provider',
     value: function configureWeb3Provider(_ref4) {
-      var _this4 = this;
+      var _this5 = this;
 
       var web3Provider = _ref4.web3Provider;
 
       return new _bluebird2.default(function (resolve, reject) {
         try {
           console.log('web3Provider', web3Provider);
-          _this4.web3 = new _web2.default(new _web2.default.providers.HttpProvider(web3Provider));
-          _this4.eth = (0, _bluebird.promisifyAll)(_this4.web3.eth);
-          resolve({ web3: _this4.web3, eth: _this4.eth });
+          _this5.web3 = new _web2.default(new _web2.default.providers.HttpProvider(web3Provider));
+          _this5.eth = (0, _bluebird.promisifyAll)(_this5.web3.eth);
+          resolve({ web3: _this5.web3, eth: _this5.eth });
         } catch (error) {
-          _this4.handleError({ error: error, method: 'configureWeb3Provider' });
+          _this5.handleError({ error: error, method: 'configureWeb3Provider' });
         }
       });
     }
   }, {
     key: 'configureContract',
     value: function configureContract(_ref5) {
-      var _this5 = this;
+      var _this6 = this;
 
       var abi = _ref5.abi,
           contractAddress = _ref5.contractAddress;
 
       return new _bluebird2.default(function (resolve, reject) {
-        _this5.contract = _this5.web3.eth.contract(abi).at(contractAddress);
-        _bluebird2.default.resolve(Object.keys(_this5.contract)).map(function (method) {
-          if (_this5.contract[method] && _this5.contract[method]['request']) {
-            _this5.contract[method] = (0, _bluebird.promisifyAll)(_this5.contract[method]);
+        _this6.contract = _this6.web3.eth.contract(abi).at(contractAddress);
+        _bluebird2.default.resolve(Object.keys(_this6.contract)).map(function (method) {
+          if (_this6.contract[method] && _this6.contract[method]['request']) {
+            _this6.contract[method] = (0, _bluebird.promisifyAll)(_this6.contract[method]);
           }
         }).then(function () {
-          resolve(_this5.contract);
+          resolve(_this6.contract);
         }).catch(function (error) {
-          _this5.handleError({ error: error, method: 'configureContract' });
+          _this6.handleError({ error: error, method: 'configureContract' });
         });
       });
     }
   }, {
     key: '_watchContributionEvents',
     value: function _watchContributionEvents() {
-      var _this6 = this;
+      var _this7 = this;
 
       var events = this.contract.Contribution({}, { fromBlock: 0, toBlock: 'latest' });
 
       events.watch(function (error, result) {
         if (error) {
-          _this6.handleError({ error: error, method: '_watchContributionEvents' });
+          _this7.handleError({ error: error, method: '_watchContributionEvents' });
         }
         console.log('_watchContributionEvents::result', result);
-        _this6.saveContributionEvent({ event: result }).then(function (contribution) {
+        _this7.saveContributionEvent({ event: result }).then(function (contribution) {
           process.send(JSON.stringify({
             event: 'new_contribution',
             data: contribution,
             message: 'New contribution received and saved.'
           }));
-          return (0, _bluebird.join)(_this6.updateLeaderboard({ contribution: contribution }), _this6.updateTotalSupply({ contribution: contribution }), _this6.updateContributionFrequency({ contribution: contribution }), _this6.updateTokenInflationRate({ contribution: contribution }), _this6.updateInflationRateAverage({ contribution: contribution }), _this6.updateSummaryStatistics({ contribution: contribution }), _this6.updateRewardTypeStats({ contribution: contribution }), _this6.updateUserTokenCreation({ contribution: contribution }), contribution);
+          return (0, _bluebird.join)(_this7.updateLeaderboard({ contribution: contribution }), _this7.updateTotalSupply({ contribution: contribution }), _this7.updateContributionFrequency({ contribution: contribution }), _this7.updateTokenInflationRate({ contribution: contribution }), _this7.updateInflationRateAverage({ contribution: contribution }), _this7.updateSummaryStatistics({ contribution: contribution }), _this7.updateRewardTypeStats({ contribution: contribution }), _this7.updateUserTokenCreation({ contribution: contribution }), contribution);
         }).then(function (data) {
           console.log(JSON.stringify(data, null, 2));
         });
@@ -233,7 +233,7 @@ var GitTokenAnalytics = function () {
   }, {
     key: 'getContractDetails',
     value: function getContractDetails() {
-      var _this7 = this;
+      var _this8 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
         _bluebird2.default.resolve().then(function () {
@@ -256,24 +256,24 @@ var GitTokenAnalytics = function () {
           // } catch (error) {
           //   throw error
           // }
-          _this7.contractDetails = {
+          _this8.contractDetails = {
             name: 'GitToken',
             symbol: 'GTK',
             decimals: 8,
             organization: 'git-token',
-            address: _this7.contract.address
+            address: _this8.contract.address
           };
-          resolve({ contractDetails: _this7.contractDetails });
+          resolve({ contractDetails: _this8.contractDetails });
         }).catch(function (error) {
           console.log('contractDetails::error', error);
-          _this7.handleError({ error: error, method: 'getContractDetails' });
+          _this8.handleError({ error: error, method: 'getContractDetails' });
         });
       });
     }
   }, {
     key: 'listen',
     value: function listen() {
-      var _this8 = this;
+      var _this9 = this;
 
       console.log('GitToken Analytics Listening on Separate Process: ', process.pid);
       process.on('message', function (msg) {
@@ -289,57 +289,58 @@ var GitTokenAnalytics = function () {
                 mysqlOpts = data.mysqlOpts,
                 contractAddress = data.contractAddress;
 
-            _this8.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
+            _this9.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
               process.send(JSON.stringify({ event: event, data: configured, message: 'GitToken Analytics Processor Configured' }));
+              _this9._watchContributionEvents();
             });
             break;
           case 'contract_details':
-            _this8.getContractDetails().then(function (result) {
+            _this9.getContractDetails().then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: 'Contract details retrieved.' }));
             });
             break;
           case 'get_contributions':
-            _this8.query({ queryString: 'SELECT * FROM contributions;' }).then(function (result) {
+            _this9.query({ queryString: 'SELECT * FROM contributions;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_total_supply':
-            _this8.query({ queryString: 'SELECT * FROM total_supply;' }).then(function (result) {
+            _this9.query({ queryString: 'SELECT * FROM total_supply;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_leaderboard':
-            _this8.query({ queryString: 'SELECT * FROM leaderboard;' }).then(function (result) {
+            _this9.query({ queryString: 'SELECT * FROM leaderboard;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_contribution_frequency':
-            _this8.query({ queryString: 'SELECT * FROM contribution_frequency;' }).then(function (result) {
+            _this9.query({ queryString: 'SELECT * FROM contribution_frequency;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_token_inflation':
-            _this8.query({ queryString: 'SELECT * FROM token_inflation;' }).then(function (result) {
+            _this9.query({ queryString: 'SELECT * FROM token_inflation;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_token_inflation_mean':
-            _this8.query({ queryString: 'SELECT * FROM token_inflation_mean;' }).then(function (result) {
+            _this9.query({ queryString: 'SELECT * FROM token_inflation_mean;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_user_token_creation':
-            _this8.query({ queryString: 'SELECT * FROM user_token_creation;' }).then(function (result) {
+            _this9.query({ queryString: 'SELECT * FROM user_token_creation;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_reward_type_stats':
-            _this8.query({ queryString: 'SELECT * FROM reward_type_stats;' }).then(function (result) {
+            _this9.query({ queryString: 'SELECT * FROM reward_type_stats;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_summary_statistics':
-            _this8.query({ queryString: 'SELECT * FROM summary_statistics;' }).then(function (result) {
+            _this9.query({ queryString: 'SELECT * FROM summary_statistics;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;

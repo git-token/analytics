@@ -40,6 +40,7 @@ export default class GitTokenAnalytics {
       this.configure({ web3Provider, mysqlOpts, contractAddress, abi }).then((configured) => {
         console.log('GitToken Analytics Processor Configured')
         console.log(JSON.stringify(configured, null, 2))
+        this._watchContributionEvents()
       })
     } else {
       console.log(`GitToken Analytics Processor listening for 'configure' event.`)
@@ -54,9 +55,6 @@ export default class GitTokenAnalytics {
         return this.configureContract({ abi, contractAddress })
       }).then(() => {
         return this.getContractDetails()
-      }).then(() => {
-        this._watchContributionEvents()
-        return null
       }).then(() => {
         console.log('this.contractDetails', this.contractDetails)
         resolve({
@@ -195,6 +193,7 @@ export default class GitTokenAnalytics {
           const { web3Provider, mysqlOpts, contractAddress } = data
           this.configure({ web3Provider, mysqlOpts, contractAddress, abi }).then((configured) => {
             process.send(JSON.stringify({ event, data: configured, message: 'GitToken Analytics Processor Configured' }))
+            this._watchContributionEvents()
           })
           break;
         case 'contract_details':
