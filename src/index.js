@@ -53,12 +53,11 @@ export default class GitTokenAnalytics {
       this.establishMySqlConnection({ mysqlOpts }).then(() => {
         return this.configureWeb3Provider({ web3Provider })
       }).then(() => {
-        console.log('configure::abi, contractAddress')
         return this.configureContract({ abi, contractAddress })
+      }).then((contract) => {
+        return this.getContractDetails({ contract })
       }).then(() => {
-        return this.getContractDetails()
-      }).then(() => {
-        console.log('this.contractDetails', this.contractDetails)
+        // console.log('this.contractDetails', this.contractDetails)
         resolve({
           contractDetails: this.contractDetails
         })
@@ -148,13 +147,13 @@ export default class GitTokenAnalytics {
     })
   }
 
-  getContractDetails() {
+  getContractDetails({ contract }) {
     return new Promise((resolve, reject) => {
       join(
-        this.contract.name.callAsync(),
-        this.contract.symbol.callAsync(),
-        this.contract.decimals.callAsync(),
-        this.contract.organization.callAsync()
+        contract.name.callAsync(),
+        contract.symbol.callAsync(),
+        contract.decimals.callAsync(),
+        contract.organization.callAsync()
       ).then((data) => {
         console.log('getContractDetails::data', data)
         try {
@@ -179,12 +178,12 @@ export default class GitTokenAnalytics {
   listen() {
     console.log('GitToken Analytics Listening on Separate Process: ', process.pid)
     process.on('message', (msg) => {
-      console.log('msg', msg)
+      // console.log('msg', msg)
       const { event, data } = JSON.parse(msg)
       switch(event) {
         case 'configure':
           const { web3Provider, mysqlOpts, contractAddress, abi } = data
-          console.log('listen::contractAddress, abi', contractAddress, abi)
+          // console.log('listen::contractAddress, abi', contractAddress, abi)
           this.configure({ web3Provider, mysqlOpts, contractAddress, abi }).then((configured) => {
             process.send(JSON.stringify({ event, data: configured, message: 'GitToken Analytics Processor Configured' }))
             this._watchContributionEvents()
