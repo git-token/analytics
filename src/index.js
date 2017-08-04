@@ -48,14 +48,13 @@ export default class GitTokenAnalytics {
     }
   }
 
-  configure({ web3Provider, mysqlOpts, contractAddress, abi }) {
+  configure({ web3Provider, mysqlOpts, contractDetails }) {
     return new Promise((resolve, reject) => {
+      this.contractDetails = contractDetails;
       this.establishMySqlConnection({ mysqlOpts }).then(() => {
         return this.configureWeb3Provider({ web3Provider })
       }).then(() => {
         return this.configureContract({ abi, contractAddress })
-      }).then((contract) => {
-        return this.getContractDetails({ contract })
       }).then(() => {
         // console.log('this.contractDetails', this.contractDetails)
         resolve({

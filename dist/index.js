@@ -110,16 +110,14 @@ var GitTokenAnalytics = function () {
 
       var web3Provider = _ref.web3Provider,
           mysqlOpts = _ref.mysqlOpts,
-          contractAddress = _ref.contractAddress,
-          abi = _ref.abi;
+          contractDetails = _ref.contractDetails;
 
       return new _bluebird2.default(function (resolve, reject) {
+        _this2.contractDetails = contractDetails;
         _this2.establishMySqlConnection({ mysqlOpts: mysqlOpts }).then(function () {
           return _this2.configureWeb3Provider({ web3Provider: web3Provider });
         }).then(function () {
           return _this2.configureContract({ abi: abi, contractAddress: contractAddress });
-        }).then(function (contract) {
-          return _this2.getContractDetails({ contract: contract });
         }).then(function () {
           // console.log('this.contractDetails', this.contractDetails)
           resolve({
@@ -274,11 +272,11 @@ var GitTokenAnalytics = function () {
           case 'configure':
             var web3Provider = data.web3Provider,
                 mysqlOpts = data.mysqlOpts,
-                contractAddress = data.contractAddress,
+                _contractAddress = data.contractAddress,
                 _abi = data.abi;
             // console.log('listen::contractAddress, abi', contractAddress, abi)
 
-            _this9.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: _abi }).then(function (configured) {
+            _this9.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: _contractAddress, abi: _abi }).then(function (configured) {
               process.send(JSON.stringify({ event: event, data: configured, message: 'GitToken Analytics Processor Configured' }));
               _this9._watchContributionEvents();
             });
