@@ -53,6 +53,7 @@ export default class GitTokenAnalytics {
       this.establishMySqlConnection({ mysqlOpts }).then(() => {
         return this.configureWeb3Provider({ web3Provider })
       }).then(() => {
+        console.log('configure::abi, contractAddress')
         return this.configureContract({ abi, contractAddress })
       }).then(() => {
         return this.getContractDetails()
@@ -149,44 +150,29 @@ export default class GitTokenAnalytics {
 
   getContractDetails() {
     return new Promise((resolve, reject) => {
-      try {
-        console.log('this.contract.name', this.contract.name)
-        this.contractDetails = {
-          name: 'GitToken',
-          symbol: 'GTK',
-          decimals: 8,
-          organization: 'git-token',
-          address: this.contract.address
+      join(
+        this.contract.name.callAsync(),
+        this.contract.symbol.callAsync(),
+        this.contract.decimals.callAsync(),
+        this.contract.organization.callAsync()
+      ).then((data) => {
+        console.log('getContractDetails::data', data)
+        try {
+          this.contractDetails = {
+            name: data[0],
+            symbol: data[1],
+            decimals: data[2].toNumber(),
+            organization: data[3],
+            address: this.contract.address
+          }
+          resolve({ contractDetails: this.contractDetails })
+        } catch (error) {
+          throw error
         }
-        resolve(this.contractDetails)
-      } catch (error) {
+      }).catch((error) => {
         console.log('contractDetails::error', error)
         this.handleError({ error, method: 'getContractDetails' })
-      }
-
-      // join(
-      //   this.contract.name.callAsync(),
-      //   this.contract.symbol.callAsync(),
-      //   this.contract.decimals.callAsync(),
-      //   this.contract.organization.callAsync()
-      // ).then((data) => {
-      //   console.log('getContractDetails::data', data)
-      //   try {
-      //     this.contractDetails = {
-      //       name: data[0],
-      //       symbol: data[1],
-      //       decimals: data[2],
-      //       organization: data[3],
-      //       address: this.contract.address
-      //     }
-      //     resolve({ contractDetails: this.contractDetails })
-      //   } catch (error) {
-      //     throw error
-      //   }
-      // }).catch((error) => {
-        // console.log('contractDetails::error', error)
-        // this.handleError({ error, method: 'getContractDetails' })
-      // })
+      })
     })
   }
 
