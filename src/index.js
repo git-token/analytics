@@ -22,7 +22,7 @@ export default class GitTokenAnalytics {
    */
   constructor(options) {
     this.listen()
-    const { web3Provider, mysqlOpts, contractAddress } = options
+    const { web3Provider, mysqlOpts, contractAddress, abi } = options
 
     this.saveContributionEvent = saveContributionEvent.bind(this)
     this.updateLeaderboard = updateLeaderboard.bind(this)

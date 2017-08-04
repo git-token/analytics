@@ -77,7 +77,8 @@ var GitTokenAnalytics = function () {
     this.listen();
     var web3Provider = options.web3Provider,
         mysqlOpts = options.mysqlOpts,
-        contractAddress = options.contractAddress;
+        contractAddress = options.contractAddress,
+        abi = options.abi;
 
 
     this.saveContributionEvent = _saveContributionEvent2.default.bind(this);
@@ -273,10 +274,10 @@ var GitTokenAnalytics = function () {
             var web3Provider = data.web3Provider,
                 mysqlOpts = data.mysqlOpts,
                 contractAddress = data.contractAddress,
-                _abi = data.abi;
+                abi = data.abi;
             // console.log('listen::contractAddress, abi', contractAddress, abi)
 
-            _this9.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: _abi }).then(function (configured) {
+            _this9.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
               process.send(JSON.stringify({ event: event, data: configured, message: 'GitToken Analytics Processor Configured' }));
               _this9._watchContributionEvents();
             });
