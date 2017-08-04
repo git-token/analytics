@@ -277,6 +277,7 @@ var GitTokenAnalytics = function () {
                 contractAddress = data.contractAddress,
                 _abi = data.abi;
 
+            console.log('listen::contractAddress, abi', contractAddress, _abi);
             _this9.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: _abi }).then(function (configured) {
               process.send(JSON.stringify({ event: event, data: configured, message: 'GitToken Analytics Processor Configured' }));
               _this9._watchContributionEvents();

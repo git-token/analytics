@@ -184,6 +184,7 @@ export default class GitTokenAnalytics {
       switch(event) {
         case 'configure':
           const { web3Provider, mysqlOpts, contractAddress, abi } = data
+          console.log('listen::contractAddress, abi', contractAddress, abi)
           this.configure({ web3Provider, mysqlOpts, contractAddress, abi }).then((configured) => {
             process.send(JSON.stringify({ event, data: configured, message: 'GitToken Analytics Processor Configured' }))
             this._watchContributionEvents()
