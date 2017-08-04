@@ -110,14 +110,16 @@ var GitTokenAnalytics = function () {
 
       var web3Provider = _ref.web3Provider,
           mysqlOpts = _ref.mysqlOpts,
-          contractDetails = _ref.contractDetails;
+          contractAddress = _ref.contractAddress,
+          abi = _ref.abi;
 
       return new _bluebird2.default(function (resolve, reject) {
-        _this2.contractDetails = contractDetails;
         _this2.establishMySqlConnection({ mysqlOpts: mysqlOpts }).then(function () {
           return _this2.configureWeb3Provider({ web3Provider: web3Provider });
         }).then(function () {
           return _this2.configureContract({ abi: abi, contractAddress: contractAddress });
+        }).then(function (contract) {
+          return _this2.getContractDetails();
         }).then(function () {
           // console.log('this.contractDetails', this.contractDetails)
           resolve({
@@ -230,13 +232,11 @@ var GitTokenAnalytics = function () {
     }
   }, {
     key: 'getContractDetails',
-    value: function getContractDetails(_ref6) {
+    value: function getContractDetails() {
       var _this8 = this;
 
-      var contract = _ref6.contract;
-
       return new _bluebird2.default(function (resolve, reject) {
-        (0, _bluebird.join)(contract.name.callAsync(), contract.symbol.callAsync(), contract.decimals.callAsync(), contract.organization.callAsync()).then(function (data) {
+        (0, _bluebird.join)(_this8.contract.name.callAsync(), _this8.contract.symbol.callAsync(), _this8.contract.decimals.callAsync(), _this8.contract.organization.callAsync()).then(function (data) {
           console.log('getContractDetails::data', data);
           try {
             _this8.contractDetails = {
@@ -272,11 +272,11 @@ var GitTokenAnalytics = function () {
           case 'configure':
             var web3Provider = data.web3Provider,
                 mysqlOpts = data.mysqlOpts,
-                _contractAddress = data.contractAddress,
+                contractAddress = data.contractAddress,
                 _abi = data.abi;
             // console.log('listen::contractAddress, abi', contractAddress, abi)
 
-            _this9.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: _contractAddress, abi: _abi }).then(function (configured) {
+            _this9.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: _abi }).then(function (configured) {
               process.send(JSON.stringify({ event: event, data: configured, message: 'GitToken Analytics Processor Configured' }));
               _this9._watchContributionEvents();
             });
@@ -342,9 +342,9 @@ var GitTokenAnalytics = function () {
     }
   }, {
     key: 'handleError',
-    value: function handleError(_ref7) {
-      var error = _ref7.error,
-          method = _ref7.method;
+    value: function handleError(_ref6) {
+      var error = _ref6.error,
+          method = _ref6.method;
 
       /**
        * TODO Add switch case handler based on error codes, etc.

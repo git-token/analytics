@@ -48,13 +48,14 @@ export default class GitTokenAnalytics {
     }
   }
 
-  configure({ web3Provider, mysqlOpts, contractDetails }) {
+  configure({ web3Provider, mysqlOpts, contractAddress, abi }) {
     return new Promise((resolve, reject) => {
-      this.contractDetails = contractDetails;
       this.establishMySqlConnection({ mysqlOpts }).then(() => {
         return this.configureWeb3Provider({ web3Provider })
       }).then(() => {
         return this.configureContract({ abi, contractAddress })
+      }).then((contract) => {
+        return this.getContractDetails()
       }).then(() => {
         // console.log('this.contractDetails', this.contractDetails)
         resolve({
@@ -146,13 +147,13 @@ export default class GitTokenAnalytics {
     })
   }
 
-  getContractDetails({ contract }) {
+  getContractDetails() {
     return new Promise((resolve, reject) => {
       join(
-        contract.name.callAsync(),
-        contract.symbol.callAsync(),
-        contract.decimals.callAsync(),
-        contract.organization.callAsync()
+        this.contract.name.callAsync(),
+        this.contract.symbol.callAsync(),
+        this.contract.decimals.callAsync(),
+        this.contract.organization.callAsync()
       ).then((data) => {
         console.log('getContractDetails::data', data)
         try {
