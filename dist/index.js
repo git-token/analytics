@@ -227,7 +227,12 @@ var GitTokenAnalytics = function () {
           }));
           return (0, _bluebird.join)(_this7.updateLeaderboard({ contribution: contribution }), _this7.updateTotalSupply({ contribution: contribution }), _this7.updateContributionFrequency({ contribution: contribution }), _this7.updateTokenInflationRate({ contribution: contribution }), _this7.updateInflationRateAverage({ contribution: contribution }), _this7.updateSummaryStatistics({ contribution: contribution }), _this7.updateRewardTypeStats({ contribution: contribution }), _this7.updateUserTokenCreation({ contribution: contribution }), contribution);
         }).then(function (data) {
-          console.log(JSON.stringify(data, null, 2));
+          // console.log(JSON.stringify(data, null, 2))
+          process.send(JSON.stringify({
+            event: 'broadcast_contribution_data',
+            message: 'Analytics updated on new contribution event.',
+            data: data
+          }));
         });
       });
     }

@@ -26,10 +26,10 @@ export default function updateLeaderboard({ contribution }) {
           ) VALUES (
             "${username}",
             "${contribution['contributor']}",
-            (SELECT sum(value) FROM contributions WHERE username = "${username}"),
+            (SELECT sum(value+reservedValue) FROM contributions WHERE username = "${username}"),
             (SELECT max(date) FROM contributions WHERE username = "${username}"),
             (SELECT count(*) FROM contributions WHERE username = "${username}"),
-            (SELECT sum(value)/count(*) FROM contributions WHERE username = "${username}"),
+            (SELECT sum(value+reservedValue)/count(*) FROM contributions WHERE username = "${username}"),
             (SELECT 1.0*sum(value+reservedValue)/(select sum(value+reservedValue) from contributions) FROM contributions WHERE username = "${username}")
           ) ON DUPLICATE KEY UPDATE
             value=VALUES(value),

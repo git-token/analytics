@@ -142,7 +142,12 @@ export default class GitTokenAnalytics {
           contribution
         )
       }).then((data) => {
-        console.log(JSON.stringify(data, null, 2))
+        // console.log(JSON.stringify(data, null, 2))
+        process.send(JSON.stringify({
+          event: 'broadcast_contribution_data',
+          message: `Analytics updated on new contribution event.`,
+          data
+        }))
       })
     })
   }
