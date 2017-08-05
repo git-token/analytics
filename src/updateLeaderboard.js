@@ -2,7 +2,7 @@ import Promise from 'bluebird'
 
 export default function updateLeaderboard({ contribution }) {
   return new Promise((resolve, reject) => {
-    const { username, contributor } = contribution
+    const { username, contributor, date } = contribution
     this.query({ queryString: `
       CREATE TABLE IF NOT EXISTS leaderboard (
         username             CHARACTER(42) PRIMARY KEY,
@@ -30,7 +30,7 @@ export default function updateLeaderboard({ contribution }) {
             (SELECT max(date) FROM contributions WHERE username = "${username}"),
             (SELECT count(*) FROM contributions WHERE username = "${username}"),
             (SELECT sum(value+reservedValue)/count(*) FROM contributions WHERE username = "${username}"),
-            (SELECT 1.0*sum(value+reservedValue)/(select sum(value+reservedValue) from contributions) FROM contributions WHERE username = "${username}")
+            (SELECT 1.0*sum(value+reservedValue)/(select sum(value+reservedValue) from contributions WHERE date <= ${date}) FROM contributions WHERE username = "${username}")
           ) ON DUPLICATE KEY UPDATE
             value=VALUES(value),
             latestContribution=VALUES(latestContribution),
