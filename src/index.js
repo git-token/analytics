@@ -139,7 +139,7 @@ export default class GitTokenAnalytics {
           this.updateSummaryStatistics({ contribution }),
           this.updateRewardTypeStats({ contribution }),
           this.updateUserTokenCreation({ contribution }),
-          this.query({ queryString: `SELECT * FROM contributions ORDER BY date DESC;` })
+          contribution
         )
       }).then((data) => {
         // console.log(JSON.stringify(data, null, 2))
