@@ -138,8 +138,7 @@ export default class GitTokenAnalytics {
           this.updateInflationRateAverage({ contribution }),
           this.updateSummaryStatistics({ contribution }),
           this.updateRewardTypeStats({ contribution }),
-          this.updateUserTokenCreation({ contribution }),
-          contribution
+          this.updateUserTokenCreation({ contribution })
         )
       }).then((data) => {
         // console.log(JSON.stringify(data, null, 2))
