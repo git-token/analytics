@@ -17,6 +17,7 @@ function milestoneCreated(_ref) {
   var data = _ref.data;
 
   return new _bluebird2.default(function (resolve, reject) {
+    console.log('milestoneCreated::data', data);
     var createdBy = data.createdBy,
         title = data.title,
         description = data.description,

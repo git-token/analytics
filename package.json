@@ -1,6 +1,6 @@
 {
   "name": "gittoken-analytics",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "description": "Analytics Processor for GitToken Events",
   "main": "src/index.js",
   "scripts": {

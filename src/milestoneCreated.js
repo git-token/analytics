@@ -2,6 +2,7 @@ import Promise from 'bluebird'
 
 export default function milestoneCreated({ data }) {
   return new Promise((resolve, reject) => {
+    console.log('milestoneCreated::data', data)
     const {
       createdBy,
       title,
