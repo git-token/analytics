@@ -127,7 +127,7 @@ export default class GitTokenAnalytics {
 
     events.watch((error, result) => {
       if (error) { this.handleError({ error, method: '_watchContributionEvents' }) }
-      console.log('_watchContributionEvents::result', result)
+      // console.log('_watchContributionEvents::result', result)
       this.saveContributionEvent({ event: result }).then((contribution) => {
         process.send(JSON.stringify({
           event: 'new_contribution',
@@ -163,7 +163,7 @@ export default class GitTokenAnalytics {
         this.contract.decimals.callAsync(),
         this.contract.organization.callAsync()
       ).then((data) => {
-        console.log('getContractDetails::data', data)
+        // console.log('getContractDetails::data', data)
         try {
           this.contractDetails = {
             name: data[0],
@@ -248,7 +248,9 @@ export default class GitTokenAnalytics {
           })
           break;
         case 'milestone_created':
+        console.log('Milestone Created');
           this.milestoneCreated({ data }).then((result) => {
+            console.log('milestone::result', result)
             process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
           })
           break;

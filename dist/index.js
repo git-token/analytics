@@ -224,7 +224,7 @@ var GitTokenAnalytics = function () {
         if (error) {
           _this7.handleError({ error: error, method: '_watchContributionEvents' });
         }
-        console.log('_watchContributionEvents::result', result);
+        // console.log('_watchContributionEvents::result', result)
         _this7.saveContributionEvent({ event: result }).then(function (contribution) {
           process.send(JSON.stringify({
             event: 'new_contribution',
@@ -249,7 +249,7 @@ var GitTokenAnalytics = function () {
 
       return new _bluebird2.default(function (resolve, reject) {
         (0, _bluebird.join)(_this8.contract.name.callAsync(), _this8.contract.symbol.callAsync(), _this8.contract.decimals.callAsync(), _this8.contract.organization.callAsync()).then(function (data) {
-          console.log('getContractDetails::data', data);
+          // console.log('getContractDetails::data', data)
           try {
             _this8.contractDetails = {
               name: data[0],
@@ -344,7 +344,9 @@ var GitTokenAnalytics = function () {
             });
             break;
           case 'milestone_created':
+            console.log('Milestone Created');
             _this9.milestoneCreated({ data: data }).then(function (result) {
+              console.log('milestone::result', result);
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
