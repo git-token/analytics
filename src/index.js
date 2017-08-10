@@ -13,6 +13,8 @@ import saveContributionEvent from './saveContributionEvent'
 import updateRewardTypeStats from './updateRewardTypeStats'
 import updateUserTokenCreation from './updateUserTokenCreation'
 
+import milestoneCreated from './milestoneCreated'
+
 // const { abi } = JSON.parse(GitTokenContract)
 
 export default class GitTokenAnalytics {
@@ -33,6 +35,8 @@ export default class GitTokenAnalytics {
     this.updateInflationRateAverage = updateInflationRateAverage.bind(this)
     this.updateRewardTypeStats = updateRewardTypeStats.bind(this)
     this.updateUserTokenCreation = updateUserTokenCreation.bind(this)
+
+    this.milestoneCreated = milestoneCreated.bind(this)
 
     this.contractDetails = {}
 
@@ -240,6 +244,11 @@ export default class GitTokenAnalytics {
           break;
         case 'get_summary_statistics':
           this.query({ queryString: `SELECT * FROM summary_statistics;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'milestone_created':
+          this.milestoneCreated({ data }).then((result) => {
             process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
           })
           break;

@@ -56,6 +56,10 @@ var _updateUserTokenCreation = require('./updateUserTokenCreation');
 
 var _updateUserTokenCreation2 = _interopRequireDefault(_updateUserTokenCreation);
 
+var _milestoneCreated = require('./milestoneCreated');
+
+var _milestoneCreated2 = _interopRequireDefault(_milestoneCreated);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -90,6 +94,8 @@ var GitTokenAnalytics = function () {
     this.updateInflationRateAverage = _updateInflationRateAverage2.default.bind(this);
     this.updateRewardTypeStats = _updateRewardTypeStats2.default.bind(this);
     this.updateUserTokenCreation = _updateUserTokenCreation2.default.bind(this);
+
+    this.milestoneCreated = _milestoneCreated2.default.bind(this);
 
     this.contractDetails = {};
 
@@ -334,6 +340,11 @@ var GitTokenAnalytics = function () {
             break;
           case 'get_summary_statistics':
             _this9.query({ queryString: 'SELECT * FROM summary_statistics;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
+          case 'milestone_created':
+            _this9.milestoneCreated({ data: data }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
