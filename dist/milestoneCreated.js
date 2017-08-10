@@ -29,7 +29,7 @@ function milestoneCreated(_ref) {
 
 
     _this.query({
-      queryString: '\n        CREATE TABLE IF NOT EXISTS milestones (\n          id              BIGINT NOT NULL DEFAULT 0 PRIMARY KEY,\n          createdBy       VARCHAR,\n          createdOn       BIGINT NOT NULL DEFAULT 0,\n          updatedOn       BIGINT NOT NULL DEFAULT 0,\n          dueOn           BIGINT NOT NULL DEFAULT 0,\n          repository      VARCHAR,\n          description     VARCHAR,\n          title           VARCHAR\n        ) ENGINE = INNODB;\n      '
+      queryString: '\n        CREATE TABLE IF NOT EXISTS milestones (\n          id              BIGINT NOT NULL DEFAULT 0 PRIMARY KEY,\n          createdBy       CHARACTER(256),\n          createdOn       BIGINT NOT NULL DEFAULT 0,\n          updatedOn       BIGINT NOT NULL DEFAULT 0,\n          dueOn           BIGINT NOT NULL DEFAULT 0,\n          repository      CHARACTER(256),\n          description     CHARACTER(256),\n          title           CHARACTER(256)\n        ) ENGINE = INNODB;\n      '
     }).then(function () {
       return _this.query({
         queryString: '\n          INSERT INTO milestones (\n            id,\n            createdBy,\n            createdOn,\n            updatedOn,\n            dueOn,\n            repository,\n            description,\n            title\n          ) VALUES (\n            ' + id + ',\n            "' + createdBy + '",\n            ' + createdOn + ',\n            ' + updatedOn + ',\n            ' + dueOn + ',\n            "' + repository + '",\n            "' + description + '",\n            "' + title + '"\n          );\n        '
