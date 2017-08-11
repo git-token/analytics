@@ -343,6 +343,11 @@ var GitTokenAnalytics = function () {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
+          case 'get_milestones':
+            _this9.query({ queryString: 'SELECT * FROM milestones;' }).then(function (result) {
+              process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
+            });
+            break;
           case 'milestone_created':
             console.log('Milestone Created');
             _this9.milestoneCreated({ data: data }).then(function (result) {

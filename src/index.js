@@ -247,8 +247,13 @@ export default class GitTokenAnalytics {
             process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
           })
           break;
+	case 'get_milestones':
+          this.query({ queryString: `SELECT * FROM milestones;` }).then((result) => {
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
         case 'milestone_created':
-        console.log('Milestone Created');
+          console.log('Milestone Created');
           this.milestoneCreated({ data }).then((result) => {
             console.log('milestone::result', result)
             process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
