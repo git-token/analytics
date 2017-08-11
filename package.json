@@ -1,6 +1,6 @@
 {
   "name": "gittoken-analytics",
-  "version": "0.1.42",
+  "version": "0.1.43",
   "description": "Analytics Processor for GitToken Events",
   "main": "src/index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "bluebird": "^3.5.0",
-    "gittoken-contracts": "0.0.22",
+    "gittoken-contracts": "0.0.27",
     "mysql": "^2.14.0",
     "web3": "^0.19.0"
   },

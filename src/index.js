@@ -127,7 +127,7 @@ export default class GitTokenAnalytics {
 
     events.watch((error, result) => {
       if (error) { this.handleError({ error, method: '_watchContributionEvents' }) }
-      // console.log('_watchContributionEvents::result', result)
+      console.log('_watchContributionEvents::result', result)
       this.saveContributionEvent({ event: result }).then((contribution) => {
         process.send(JSON.stringify({
           event: 'new_contribution',
@@ -247,15 +247,18 @@ export default class GitTokenAnalytics {
             process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
           })
           break;
-	case 'get_milestones':
+	      case 'get_milestones':
           this.query({ queryString: `SELECT * FROM milestones;` }).then((result) => {
             process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
           })
           break;
         case 'milestone_created':
-          console.log('Milestone Created');
           this.milestoneCreated({ data }).then((result) => {
-            console.log('milestone::result', result)
+            process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
+          })
+          break;
+        case 'milestone_closed':
+          this.milestoneCompleted({ data }).then((result) => {
             process.send(JSON.stringify({ event, data: result, message: `${event} data retrieved.` }))
           })
           break;

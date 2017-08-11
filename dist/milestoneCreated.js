@@ -21,18 +21,20 @@ function milestoneCreated(_ref) {
     var createdBy = data.createdBy,
         title = data.title,
         description = data.description,
+        state = data.state,
         createdOn = data.createdOn,
         updatedOn = data.updatedOn,
         dueOn = data.dueOn,
+        closedOn = data.closedOn,
         repository = data.repository,
         id = data.id;
 
 
     _this.query({
-      queryString: '\n        CREATE TABLE IF NOT EXISTS milestones (\n          id              BIGINT NOT NULL DEFAULT 0 PRIMARY KEY,\n          createdBy       CHARACTER(255),\n          createdOn       BIGINT NOT NULL DEFAULT 0,\n          updatedOn       BIGINT NOT NULL DEFAULT 0,\n          dueOn           BIGINT NOT NULL DEFAULT 0,\n          repository      CHARACTER(255),\n          description     CHARACTER(255),\n          title           CHARACTER(255)\n        ) ENGINE = INNODB;\n      '
+      queryString: '\n        CREATE TABLE IF NOT EXISTS milestones (\n          id              BIGINT NOT NULL DEFAULT 0 PRIMARY KEY,\n          createdBy       CHARACTER(255),\n          createdOn       BIGINT NOT NULL DEFAULT 0,\n          updatedOn       BIGINT NOT NULL DEFAULT 0,\n          dueOn           BIGINT NOT NULL DEFAULT 0,\n          closedOn        BIGINT NOT NULL DEFAULT 0,\n          repository      CHARACTER(255),\n          description     CHARACTER(255),\n          title           CHARACTER(255),\n          state           CHARACTER(255)\n        ) ENGINE = INNODB;\n      '
     }).then(function () {
       return _this.query({
-        queryString: '\n          INSERT INTO milestones (\n            id,\n            createdBy,\n            createdOn,\n            updatedOn,\n            dueOn,\n            repository,\n            description,\n            title\n          ) VALUES (\n            ' + id + ',\n            "' + createdBy + '",\n            ' + createdOn + ',\n            ' + updatedOn + ',\n            ' + dueOn + ',\n            "' + repository + '",\n            "' + description + '",\n            "' + title + '"\n          );\n        '
+        queryString: '\n          INSERT INTO milestones (\n            id,\n            createdBy,\n            createdOn,\n            updatedOn,\n            dueOn,\n            closedOn,\n            repository,\n            description,\n            title\n          ) VALUES (\n            ' + id + ',\n            "' + createdBy + '",\n            ' + createdOn + ',\n            ' + updatedOn + ',\n            ' + dueOn + ',\n            ' + closedOn + ',\n            "' + repository + '",\n            "' + description + '",\n            "' + title + '",\n            "' + state + '"\n          );\n        '
       });
     }).then(function () {
       return _this.query({
