@@ -18,13 +18,13 @@ export default function milestoneCreated({ data }) {
       queryString: `
         CREATE TABLE IF NOT EXISTS milestones (
           id              BIGINT NOT NULL DEFAULT 0 PRIMARY KEY,
-          createdBy       CHARACTER(256),
+          createdBy       TEXT,
           createdOn       BIGINT NOT NULL DEFAULT 0,
           updatedOn       BIGINT NOT NULL DEFAULT 0,
           dueOn           BIGINT NOT NULL DEFAULT 0,
-          repository      CHARACTER(256),
-          description     CHARACTER(256),
-          title           CHARACTER(256)
+          repository      TEXT,
+          description     TEXT,
+          title           TEXT
         ) ENGINE = INNODB;
       `,
     }).then(() => {
