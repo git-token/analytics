@@ -14,6 +14,7 @@ import updateRewardTypeStats from './updateRewardTypeStats'
 import updateUserTokenCreation from './updateUserTokenCreation'
 
 import milestoneCreated from './milestoneCreated'
+import milestoneCompleted from './milestoneCompleted'
 
 // const { abi } = JSON.parse(GitTokenContract)
 
@@ -37,6 +38,7 @@ export default class GitTokenAnalytics {
     this.updateUserTokenCreation = updateUserTokenCreation.bind(this)
 
     this.milestoneCreated = milestoneCreated.bind(this)
+    this.milestoneCompleted = milestoneCompleted.bind(this)
 
     this.contractDetails = {}
 

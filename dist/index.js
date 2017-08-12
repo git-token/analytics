@@ -60,6 +60,10 @@ var _milestoneCreated = require('./milestoneCreated');
 
 var _milestoneCreated2 = _interopRequireDefault(_milestoneCreated);
 
+var _milestoneCompleted = require('./milestoneCompleted');
+
+var _milestoneCompleted2 = _interopRequireDefault(_milestoneCompleted);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -96,6 +100,7 @@ var GitTokenAnalytics = function () {
     this.updateUserTokenCreation = _updateUserTokenCreation2.default.bind(this);
 
     this.milestoneCreated = _milestoneCreated2.default.bind(this);
+    this.milestoneCompleted = _milestoneCompleted2.default.bind(this);
 
     this.contractDetails = {};
 

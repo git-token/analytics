@@ -43,7 +43,8 @@ export default function milestoneCreated({ data }) {
             closedOn,
             repository,
             description,
-            title
+            title,
+            state
           ) VALUES (
             ${id},
             "${createdBy}",

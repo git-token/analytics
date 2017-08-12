@@ -30,7 +30,7 @@ function milestoneCompleted(_ref) {
 
 
     _this.query({
-      queryString: '\n          INSERT INTO milestones (\n            id,\n            createdBy,\n            createdOn,\n            updatedOn,\n            dueOn,\n            closedOn,\n            repository,\n            description,\n            title\n          ) VALUES (\n            ' + id + ',\n            "' + createdBy + '",\n            ' + createdOn + ',\n            ' + updatedOn + ',\n            ' + dueOn + ',\n            ' + closedOn + ',\n            "' + repository + '",\n            "' + description + '",\n            "' + title + '",\n            "' + state + '"\n          ) ON DUPLICATE KEY UPDATE\n            state=VALUES(state),\n            updatedOn=VALUES(updatedOn),\n            closedOn=VALUES(closedOn);\n        '
+      queryString: '\n          INSERT INTO milestones (\n            id,\n            createdBy,\n            createdOn,\n            updatedOn,\n            dueOn,\n            closedOn,\n            repository,\n            description,\n            title,\n            state\n          ) VALUES (\n            ' + id + ',\n            "' + createdBy + '",\n            ' + createdOn + ',\n            ' + updatedOn + ',\n            ' + dueOn + ',\n            ' + closedOn + ',\n            "' + repository + '",\n            "' + description + '",\n            "' + title + '",\n            "' + state + '"\n          ) ON DUPLICATE KEY UPDATE\n            state=VALUES(state),\n            updatedOn=VALUES(updatedOn),\n            closedOn=VALUES(closedOn);\n        '
     }).then(function () {
       return _this.query({
         queryString: '\n          SELECT * FROM milestones;\n        '
