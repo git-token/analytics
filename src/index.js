@@ -122,6 +122,14 @@ export default class GitTokenAnalytics {
     })
   }
 
+  _watchInitializeAuctionEvents() {
+    const events = this.contract.NewAuction({}, { fromBlock: 0, toBlock: 'latest' })
+    events.watch((error, result) => {
+      if (error) { this.handleError({ error, method: '_watchInitializeAuctionEvents' }) }
+      console.log('_watchInitializeAuctionEvents::result', result)
+    })
+  }
+
   _watchContributionEvents() {
     const events = this.contract.Contribution({}, { fromBlock: 0, toBlock: 'latest' })
 
@@ -192,9 +200,15 @@ export default class GitTokenAnalytics {
         case 'configure':
           const { web3Provider, mysqlOpts, contractAddress, abi } = data
           // console.log('listen::contractAddress, abi', contractAddress, abi)
-          this.configure({ web3Provider, mysqlOpts, contractAddress, abi }).then((configured) => {
+          this.configure({
+            web3Provider,
+            mysqlOpts,
+            contractAddress,
+            abi
+          }).then((configured) => {
             process.send(JSON.stringify({ event, data: configured, message: 'GitToken Analytics Processor Configured' }))
             this._watchContributionEvents()
+            this._watchInitializeAuctionEvents()
           })
           break;
         case 'contract_details':

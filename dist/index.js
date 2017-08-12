@@ -214,24 +214,37 @@ var GitTokenAnalytics = function () {
       });
     }
   }, {
+    key: '_watchInitializeAuctionEvents',
+    value: function _watchInitializeAuctionEvents() {
+      var _this7 = this;
+
+      var events = this.contract.NewAuction({}, { fromBlock: 0, toBlock: 'latest' });
+      events.watch(function (error, result) {
+        if (error) {
+          _this7.handleError({ error: error, method: '_watchInitializeAuctionEvents' });
+        }
+        console.log('_watchInitializeAuctionEvents::result', result);
+      });
+    }
+  }, {
     key: '_watchContributionEvents',
     value: function _watchContributionEvents() {
-      var _this7 = this;
+      var _this8 = this;
 
       var events = this.contract.Contribution({}, { fromBlock: 0, toBlock: 'latest' });
 
       events.watch(function (error, result) {
         if (error) {
-          _this7.handleError({ error: error, method: '_watchContributionEvents' });
+          _this8.handleError({ error: error, method: '_watchContributionEvents' });
         }
         console.log('_watchContributionEvents::result', result);
-        _this7.saveContributionEvent({ event: result }).then(function (contribution) {
+        _this8.saveContributionEvent({ event: result }).then(function (contribution) {
           process.send(JSON.stringify({
             event: 'new_contribution',
             data: contribution,
             message: 'New contribution received and saved.'
           }));
-          return (0, _bluebird.join)(_this7.updateLeaderboard({ contribution: contribution }), _this7.updateTotalSupply({ contribution: contribution }), _this7.updateContributionFrequency({ contribution: contribution }), _this7.updateTokenInflationRate({ contribution: contribution }), _this7.updateInflationRateAverage({ contribution: contribution }), _this7.updateSummaryStatistics({ contribution: contribution }), _this7.updateRewardTypeStats({ contribution: contribution }), _this7.updateUserTokenCreation({ contribution: contribution }));
+          return (0, _bluebird.join)(_this8.updateLeaderboard({ contribution: contribution }), _this8.updateTotalSupply({ contribution: contribution }), _this8.updateContributionFrequency({ contribution: contribution }), _this8.updateTokenInflationRate({ contribution: contribution }), _this8.updateInflationRateAverage({ contribution: contribution }), _this8.updateSummaryStatistics({ contribution: contribution }), _this8.updateRewardTypeStats({ contribution: contribution }), _this8.updateUserTokenCreation({ contribution: contribution }));
         }).then(function (data) {
           // console.log(JSON.stringify(data, null, 2))
           process.send(JSON.stringify({
@@ -245,33 +258,33 @@ var GitTokenAnalytics = function () {
   }, {
     key: 'getContractDetails',
     value: function getContractDetails() {
-      var _this8 = this;
+      var _this9 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
-        (0, _bluebird.join)(_this8.contract.name.callAsync(), _this8.contract.symbol.callAsync(), _this8.contract.decimals.callAsync(), _this8.contract.organization.callAsync()).then(function (data) {
+        (0, _bluebird.join)(_this9.contract.name.callAsync(), _this9.contract.symbol.callAsync(), _this9.contract.decimals.callAsync(), _this9.contract.organization.callAsync()).then(function (data) {
           // console.log('getContractDetails::data', data)
           try {
-            _this8.contractDetails = {
+            _this9.contractDetails = {
               name: data[0],
               symbol: data[1],
               decimals: data[2].toNumber(),
               organization: data[3],
-              address: _this8.contract.address
+              address: _this9.contract.address
             };
-            resolve({ contractDetails: _this8.contractDetails });
+            resolve({ contractDetails: _this9.contractDetails });
           } catch (error) {
             throw error;
           }
         }).catch(function (error) {
           console.log('contractDetails::error', error);
-          _this8.handleError({ error: error, method: 'getContractDetails' });
+          _this9.handleError({ error: error, method: 'getContractDetails' });
         });
       });
     }
   }, {
     key: 'listen',
     value: function listen() {
-      var _this9 = this;
+      var _this10 = this;
 
       console.log('GitToken Analytics Listening on Separate Process: ', process.pid);
       process.on('message', function (msg) {
@@ -288,73 +301,79 @@ var GitTokenAnalytics = function () {
                 abi = data.abi;
             // console.log('listen::contractAddress, abi', contractAddress, abi)
 
-            _this9.configure({ web3Provider: web3Provider, mysqlOpts: mysqlOpts, contractAddress: contractAddress, abi: abi }).then(function (configured) {
+            _this10.configure({
+              web3Provider: web3Provider,
+              mysqlOpts: mysqlOpts,
+              contractAddress: contractAddress,
+              abi: abi
+            }).then(function (configured) {
               process.send(JSON.stringify({ event: event, data: configured, message: 'GitToken Analytics Processor Configured' }));
-              _this9._watchContributionEvents();
+              _this10._watchContributionEvents();
+              _this10._watchInitializeAuctionEvents();
             });
             break;
           case 'contract_details':
-            _this9.getContractDetails().then(function (result) {
+            _this10.getContractDetails().then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: 'Contract details retrieved.' }));
             });
             break;
           case 'get_contributions':
-            _this9.query({ queryString: 'SELECT * FROM contributions;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM contributions;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_total_supply':
-            _this9.query({ queryString: 'SELECT * FROM total_supply;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM total_supply;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_leaderboard':
-            _this9.query({ queryString: 'SELECT * FROM leaderboard;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM leaderboard;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_contribution_frequency':
-            _this9.query({ queryString: 'SELECT * FROM contribution_frequency;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM contribution_frequency;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_token_inflation':
-            _this9.query({ queryString: 'SELECT * FROM token_inflation;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM token_inflation;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_token_inflation_mean':
-            _this9.query({ queryString: 'SELECT * FROM token_inflation_mean;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM token_inflation_mean;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_user_token_creation':
-            _this9.query({ queryString: 'SELECT * FROM user_token_creation;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM user_token_creation;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_reward_type_stats':
-            _this9.query({ queryString: 'SELECT * FROM reward_type_stats;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM reward_type_stats;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_summary_statistics':
-            _this9.query({ queryString: 'SELECT * FROM summary_statistics;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM summary_statistics;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'get_milestones':
-            _this9.query({ queryString: 'SELECT * FROM milestones;' }).then(function (result) {
+            _this10.query({ queryString: 'SELECT * FROM milestones;' }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'milestone_created':
-            _this9.milestoneCreated({ data: data }).then(function (result) {
+            _this10.milestoneCreated({ data: data }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
           case 'milestone_closed':
-            _this9.milestoneCompleted({ data: data }).then(function (result) {
+            _this10.milestoneCompleted({ data: data }).then(function (result) {
               process.send(JSON.stringify({ event: event, data: result, message: event + ' data retrieved.' }));
             });
             break;
