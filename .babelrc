@@ -11,8 +11,7 @@
           {
             "extensions": [
               ".json",
-              ".sql",
-              ".graphql"
+              ".sql"
             ]
           }
         ]
