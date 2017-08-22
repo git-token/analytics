@@ -131,11 +131,6 @@ export default class GitTokenAnalytics {
       if (error) { this.handleError({ error, method: '_watchContributionEvents' }) }
       console.log('_watchContributionEvents::result', result)
       this.saveContributionEvent({ event: result }).then((contribution) => {
-        process.send(JSON.stringify({
-          event: 'new_contribution',
-          data: contribution,
-          message: `New contribution received and saved.`
-        }))
         return join(
           this.updateLeaderboard({ contribution }),
           this.updateTotalSupply({ contribution }),
@@ -144,7 +139,8 @@ export default class GitTokenAnalytics {
           this.updateInflationRateAverage({ contribution }),
           this.updateSummaryStatistics({ contribution }),
           this.updateRewardTypeStats({ contribution }),
-          this.updateUserTokenCreation({ contribution })
+          this.updateUserTokenCreation({ contribution }),
+          contribution
         )
       }).then((data) => {
         // console.log(JSON.stringify(data, null, 2))
